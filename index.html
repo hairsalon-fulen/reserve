@@ -576,6 +576,8 @@
 
                 await fetch(NOTIFICATION_CONFIG.gas_webapp_url, {
                     method: 'POST',
+                    mode: 'no-cors', // ← これを復活！
+                    headers: { 'Content-Type': 'application/json' }, // ← これも復活！
                     body: JSON.stringify({ type: 'new_booking', name: name, tel: tel, source: source, date: selectedDate, time: selectedTime, menu: combinedMenuNames, totalTime: totalTime })
                 });
                 window.changeStep(4);
