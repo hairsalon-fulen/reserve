@@ -751,25 +751,42 @@
             } 
         };
         
+        // ★ここから下をコピーして、元の window.verifyAdmin と丸ごと差し替えてください
+
         window.verifyAdmin = async () => {
             const passInput = document.getElementById('adminPass').value;
-            const btn = event.target; const originalText = btn.innerText;
+            const btn = event.target;
+            const originalText = btn.innerText;
             btn.innerText = "確認中..."; btn.disabled = true;
             try {
+                // ▼▼▼ 通信部分をシンプルに戻します ▼▼▼
                 const response = await fetch(NOTIFICATION_CONFIG.gas_webapp_url, {
-                    method: 'POST', body: JSON.stringify({ type: 'verifyAdmin', password: passInput })
+                    method: 'POST',
+                    // ※ mode: 'no-cors' や headers: {...} の設定はすべて消し、bodyだけを送ります
+                    body: JSON.stringify({ type: 'verifyAdmin', password: passInput })
                 });
+                // ▲▲▲ 変更箇所はここまで ▲▲▲
+                
                 const result = await response.json();
+
                 if(result.success === true){ 
-                    isAdmin=true; document.getElementById('modeLabel').innerText='ON'; 
+                    isAdmin=true;
+                    document.getElementById('modeLabel').innerText='ON'; 
                     document.getElementById('adminAuthModal').style.display='none'; 
                     document.getElementById('adminBookingSection').classList.remove('hidden'); 
                     document.getElementById('emergencyBtn').classList.remove('hidden'); 
                     document.getElementById('emergencyOverlay').style.display = 'none'; 
                     window.changeStep(2);
-                } else { alert("パスワードが違います"); } 
-            } catch (e) { alert("通信エラーが発生しました。"); } 
-            finally { btn.innerText = originalText; btn.disabled = false; document.getElementById('adminPass').value = ""; }
+                } else { 
+                    alert("パスワードが違います");
+                } 
+            } catch (e) {
+                console.error("エラー詳細:", e); // エラーの原因がブラウザの裏側でわかるように念のため追加
+                alert("通信エラーが発生しました。");
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
         };
 
         window.toggleEmergencyStop = async () => {
