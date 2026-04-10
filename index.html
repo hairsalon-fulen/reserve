@@ -561,8 +561,6 @@
 
                 await fetch(NOTIFICATION_CONFIG.gas_webapp_url, {
                     method: 'POST',
-                    mode: 'no-cors', // ★追加：通信エラー回避
-                    headers: { 'Content-Type': 'application/json' }, // ★追加：データ形式の指定
                     body: JSON.stringify({ type: 'new_booking', name: name, tel: tel, source: source, date: selectedDate, time: selectedTime, menu: combinedMenuNames, totalTime: totalTime })
                 });
                 window.changeStep(4);
