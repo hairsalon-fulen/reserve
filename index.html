@@ -279,22 +279,14 @@
             gas_webapp_url: "https://script.google.com/macros/s/AKfycbyJFunJSoaHRcs7Hb5vB7nIFukWygzLQI-eNu-yeU_w1m0rJBXvjLoRe2h8FY4RMGrv/exec"
         };
         const firebaseConfig = {
-
-  apiKey: "AIzaSyCfiR-LrhgdcjT-rSXLIRI3tlC0LGhIjRQ",
-
-  authDomain: "hairsalon-fulen.firebaseapp.com",
-
-  projectId: "hairsalon-fulen",
-
-  storageBucket: "hairsalon-fulen.firebasestorage.app",
-
-  messagingSenderId: "294997014666",
-
-  appId: "1:294997014666:web:24cfd1cedeb78adf4e5573",
-
-  measurementId: "G-24XRQ5K9MR"
-
-};
+            apiKey: "AIzaSyCfiR-LrhgdcjT-rSXLIRI3tlC0LGhIjRQ",
+            authDomain: "hairsalon-fulen.firebaseapp.com",
+            projectId: "hairsalon-fulen",
+            storageBucket: "hairsalon-fulen.firebasestorage.app",
+            messagingSenderId: "294997014666",
+            appId: "1:294997014666:web:24cfd1cedeb78adf4e5573",
+            measurementId: "G-24XRQ5K9MR"
+        };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app); const auth = getAuth(app); 
         const appId = "hairsalon-fulen"; 
@@ -327,6 +319,9 @@
         let autoHolidays = [];
 
         window.onload = async () => { 
+            // ★ 修正箇所1：EmailJSの初期化（エンジンをかける処理）を追加
+            emailjs.init(NOTIFICATION_CONFIG.emailjs_public_key);
+
             try {
                 const response = await fetch('https://holidays-jp.github.io/api/v1/date.json');
                 const holidayData = await response.json();
@@ -573,12 +568,12 @@
                     }
                 }
 
+                // ★ 修正箇所3：余計なオプションを削り、CORSエラーを防ぐシンプルなPOST送信に統一
                 await fetch(NOTIFICATION_CONFIG.gas_webapp_url, {
                     method: 'POST',
-                    mode: 'no-cors', // ← これを復活！
-                    headers: { 'Content-Type': 'application/json' }, // ← これも復活！
                     body: JSON.stringify({ type: 'new_booking', name: name, tel: tel, source: source, date: selectedDate, time: selectedTime, menu: combinedMenuNames, totalTime: totalTime })
                 });
+
                 window.changeStep(4);
                 document.getElementById('step4').scrollIntoView({behavior: 'smooth'});
 
@@ -723,11 +718,12 @@
             if(confirm(`${name}様へサンキューメール＆口コミ獲得メッセージを送信しますか？`)) {
                 try {
                     if (email) {
+                        // ★ 修正箇所2：ハードコードを辞めて、一番上の設定変数（NOTIFICATION_CONFIG）を参照するように統一
+                        // ※EmailJSのテンプレート側で {{email}} {{message}} {{name}} という変数が設定されている必要があります。
                         await emailjs.send(
                             NOTIFICATION_CONFIG.emailjs_service_id,
-                            "template_znaqqfl", // ※EmailJSで作成したサンキュー用テンプレートIDを入れてください
-                            { email: email, message: msg, name: name },
-                            NOTIFICATION_CONFIG.emailjs_public_key
+                            NOTIFICATION_CONFIG.emailjs_template_id, 
+                            { email: email, message: msg, name: name }
                         );
                     } else {
                         alert("⚠️ このお客様はメールアドレスの登録がないため、システム上のステータス更新のみ行います。（公式LINE等で直接メッセージをお願いいたします！）");
@@ -751,43 +747,42 @@
             } 
         };
         
-       // ★HTML内のこの関数を、以下の内容で丸ごと上書きしてください
-window.verifyAdmin = async () => {
-    const passInput = document.getElementById('adminPass').value;
-    const btn = event.target;
-    const originalText = btn.innerText;
-    btn.innerText = "確認中..."; 
-    btn.disabled = true;
+        window.verifyAdmin = async () => {
+            const passInput = document.getElementById('adminPass').value;
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = "確認中..."; 
+            btn.disabled = true;
 
-    try {
-        // fetchのオプションから mode: 'no-cors' や headers を削除し、シンプルにします
-        const response = await fetch(NOTIFICATION_CONFIG.gas_webapp_url, {
-            method: 'POST',
-            body: JSON.stringify({ type: 'verifyAdmin', password: passInput })
-        });
+            try {
+                // fetchのオプションから mode: 'no-cors' や headers を削除し、シンプルにします
+                const response = await fetch(NOTIFICATION_CONFIG.gas_webapp_url, {
+                    method: 'POST',
+                    body: JSON.stringify({ type: 'verifyAdmin', password: passInput })
+                });
 
-        // ここでGASからの返事（JSON）を読み取ります
-        const result = await response.json();
+                // ここでGASからの返事（JSON）を読み取ります
+                const result = await response.json();
 
-        if (result.success === true) { 
-            isAdmin = true;
-            document.getElementById('modeLabel').innerText = 'ON'; 
-            document.getElementById('adminAuthModal').style.display = 'none'; 
-            document.getElementById('adminBookingSection').classList.remove('hidden'); 
-            document.getElementById('emergencyBtn').classList.remove('hidden'); 
-            document.getElementById('emergencyOverlay').style.display = 'none'; 
-            window.changeStep(2);
-        } else { 
-            alert("パスワードが違います");
-        } 
-    } catch (e) {
-        console.error("エラー詳細:", e);
-        alert("通信エラーが発生しました。修正したHTMLが反映されているか確認してください。");
-    } finally {
-        btn.innerText = originalText;
-        btn.disabled = false;
-    }
-};
+                if (result.success === true) { 
+                    isAdmin = true;
+                    document.getElementById('modeLabel').innerText = 'ON'; 
+                    document.getElementById('adminAuthModal').style.display = 'none'; 
+                    document.getElementById('adminBookingSection').classList.remove('hidden'); 
+                    document.getElementById('emergencyBtn').classList.remove('hidden'); 
+                    document.getElementById('emergencyOverlay').style.display = 'none'; 
+                    window.changeStep(2);
+                } else { 
+                    alert("パスワードが違います");
+                } 
+            } catch (e) {
+                console.error("エラー詳細:", e);
+                alert("通信エラーが発生しました。修正したHTMLが反映されているか確認してください。");
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        };
 
         window.toggleEmergencyStop = async () => {
             const newState = !isEmergencyStop;
