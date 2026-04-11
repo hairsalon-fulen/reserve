@@ -742,7 +742,9 @@
         };
 
         window.rejectBooking = async (id, date, time, totalTimeStr) => {
-            if(!confirm("本当にこの予約をお断り（キャンセル）し、枠を空き状態に戻しますか？")) return;
+            // ★ここを変更：確認メッセージにお客様へのLINE連絡を促す文章を追加しました
+            if(!confirm("この予約を「否認」し、枠を空き状態に戻しますか？\n\n【⚠️お願い】\n否認処理の後、お客様へ直接LINE等でご連絡いただき、別の日時や空いている時間へのご変更を案内してあげてください。")) return;
+            
             try {
                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id), { status: '否認' });
                 const tTime = parseInt(totalTimeStr) || 30;
@@ -751,12 +753,13 @@
                 if (startIndex !== -1) {
                     for (let i = 0; i < slotsToFree; i++) {
                         if (startIndex + i < timeSlots.length) {
-                            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'slots', `${date}_${timeSlots[startIndex + i]}`), { status: 'ok' });
+                            const sId = `${date}_${timeSlots[startIndex + i]}`;
+                            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'slots', sId), { status: 'ok' });
                         }
                     }
                 }
                 alert("否認処理が完了し、予約枠を開放しました。\n（このカルテは「削除」ボタンから消去可能です）");
-            } catch(e) {}
+            } catch(e) { alert("通信エラーが発生しました"); }
         };
 
         window.deleteBooking = async (id) => {
