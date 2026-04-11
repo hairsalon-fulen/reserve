@@ -318,20 +318,18 @@
         const db = getFirestore(app); const auth = getAuth(app); 
         const appId = "hairsalon-fulen"; 
         
-        // ★ 変更：顧客マスター用の変数 customerMaster を追加
-        let reservationData = {}, bookingsList = {}, customerMaster = {}, isAdmin = false, isEmergencyStop = false, selectedMenus = [];
+        let reservationData = {}, bookingsList = [], customerMaster = {}, isAdmin = false, isEmergencyStop = false, selectedMenus = [];
         let selectedDate = "", selectedTime = ""; 
         let isTetrisMode = false;
         let myChart = null;
 
-        // ★ メニュー構造の改修部分（最新の要件・画像を反映）
         const menuData = [
             // カット系
             { name: "カット（シャンプーなし）", time: 60, price: 3850, desc: "シャンプーご希望の場合はオプションの「シャンプー」を追加してください", isCut: true, isMain: true },
             { name: "スクールキッズ 小学生以下", time: 60, price: 2200, desc: "小学生以下のお子様カット", isCut: true, isMain: true },
             { name: "スクールキッズ 中学生以上(U24)", time: 60, price: 2750, desc: "中学生〜24歳までの学生カット", isCut: true, isMain: true },
             
-            // カラー・パーマ系（カット込・別）
+            // カラー・パーマ系
             { name: "カラーカット", time: 120, price: 8800, desc: "※全体カラーの場合、当日＋550円", includesCut: true, isMain: true },
             { name: "カラーリタッチ", time: 90, price: 5280, desc: "※カットなし・根元のみ", isCut: false, isMain: true },
             { name: "カラー全体", time: 90, price: 6050, desc: "※カットなし・全体染め", isCut: false, isMain: true },
@@ -344,16 +342,16 @@
             { name: "学生(U24)縮毛矯正", time: 180, price: 12650, desc: "24歳までの学生限定", isMain: true },
             { name: "髪質改善縮毛矯正", time: 210, price: 17000, desc: "髪質改善特化の縮毛矯正", isMain: true },
             
-            // 髪質改善系（メイン）
+            // 髪質改善系
             { name: "髪質改善トリートメント", time: 90, price: 7000, desc: "シャンプー込み", isMain: true },
             { name: "シャンプーブロー", time: 30, price: 2100, desc: "シャンプーとブロー・セット（長さにより+1300〜1500円）", isStartingPrice: true, isMain: true },
 
-            // トリートメント・スパ系（単体予約時は自動で料金・時間が加算されるロジック）
+            // トリートメント・スパ系
             { name: "トリートメント", time: 30, price: 2750, desc: "※単体ご予約時はシャンプー・ブロー代(+1430円)と時間(+30分)が自動加算されます", isTreatment: true, standaloneExtraTime: 30, standaloneExtraPrice: 1430 },
             { name: "スパトリートメント", time: 40, price: 3850, desc: "※単体ご予約時はシャンプー・ブロー代(+1100円)と時間(+50分)が自動加算されます", isTreatment: true, standaloneExtraTime: 50, standaloneExtraPrice: 1100 },
             { name: "スパトリートメントフレン", time: 40, price: 4730, desc: "※単体ご予約時はシャンプー・ブロー代(+1100円)と時間(+50分)が自動加算されます", isTreatment: true, standaloneExtraTime: 50, standaloneExtraPrice: 1100 },
 
-            // オプション系（メインメニューと組み合わせ）
+            // オプション系
             { name: "シャンプー", time: 0, price: 880, desc: "カット等にプラスする場合（時間追加なし）", isOption: true },
             { name: "プラスブリーチ", time: 60, price: 5000, desc: "※カラーメニューに追加してください", isOption: true },
             { name: "ダブル・トリプルカラー", time: 0, price: 3500, desc: "※長さによって3500円〜4500円。当日ご案内します", isStartingPrice: true, isOption: true },
@@ -365,7 +363,6 @@
 
         window.onload = async () => { 
             emailjs.init(NOTIFICATION_CONFIG.emailjs_public_key);
-
             try {
                 const response = await fetch('https://holidays-jp.github.io/api/v1/date.json');
                 const holidayData = await response.json();
@@ -381,7 +378,6 @@
             onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'emergency'), (doc) => {
                 isEmergencyStop = doc.exists() ? doc.data().active : false;
                 document.getElementById('emergencyOverlay').style.display = (isEmergencyStop && !isAdmin) ? 'flex' : 'none';
-                
                 const btn = document.getElementById('emergencyBtn');
                 btn.innerText = isEmergencyStop ? '🛑 停止中 (解除する)' : '✅ 稼働中 (緊急停止)';
                 if (isEmergencyStop) {
@@ -393,12 +389,17 @@
                 }
             });
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'slots'), snap => { snap.forEach(d => reservationData[d.id] = d.data().status); renderCalendar(); });
-            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'bookings'), snap => { bookingsList = snap.docs.map(d => ({id:d.id, ...d.data()})); renderAdminBookings(); updateChart(); });
             
-            // ★ 新規追加：顧客マスター（カルテ）データの監視
+            // 顧客マスターデータの監視
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'customers'), snap => {
                 snap.forEach(d => { customerMaster[d.id] = d.data(); });
-                renderAdminBookings(); // 顧客データが更新されたらカルテ一覧も再描画する
+                if(isAdmin) renderAdminBookings();
+            });
+
+            // 予約リストの監視
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'bookings'), snap => { 
+                bookingsList = snap.docs.map(d => ({id:d.id, ...d.data()})); 
+                if(isAdmin) { renderAdminBookings(); updateChart(); }
             });
         };
 
@@ -470,7 +471,6 @@
         };
 
         window.goToStep2 = () => { 
-            // ★ オプション単体での予約を防ぐ安全装置
             const hasMainMenu = selectedMenus.some(m => m.isMain);
             const hasTreatment = selectedMenus.some(m => m.isTreatment);
             if (!hasMainMenu && !hasTreatment) {
@@ -701,12 +701,10 @@
                     : '<i class="fas fa-envelope-open-text mr-1"></i>サンキューメール＆口コミ獲得';
                 const thankYouBtnAction = isThankYouSent ? "" : `onclick="window.sendThankYou('${b.id}', '${b.name}', '${b.email || ''}')"`;
 
-                // ★ ここからUIの分岐を業務フローに合わせて改善しました
                 let actionButtonsHtml = '';
                 if (statusStr === '否認' || statusStr === 'キャンセル') {
                     actionButtonsHtml = `<div class="flex flex-wrap gap-2"><button onclick="window.deleteBooking('${b.id}')" class="w-full py-3 bg-red-500 text-white font-bold rounded-xl text-xs shadow-md hover:bg-red-600 active:scale-95 transition-transform"><i class="fas fa-trash-alt mr-1"></i>このカルテを完全に削除する</button></div>`;
                 } else if (isThankYouSent) {
-                    // サンキューメール送信後は「接客完了」として整理（削除）ボタンに切り替える
                     actionButtonsHtml = `
                         <div class="flex flex-col gap-2 mt-2">
                             <button class="${thankYouBtnClass}">${thankYouBtnText}</button>
@@ -714,7 +712,6 @@
                         </div>
                     `;
                 } else {
-                    // 通常時（サンキューメール送信前）
                     actionButtonsHtml = `
                         <div class="flex flex-wrap gap-2">
                             <button onclick="window.approveBooking('${b.id}')" class="flex-1 py-3 bg-green-500 text-white font-bold rounded-xl text-xs shadow-md hover:bg-green-600 active:scale-95 transition-transform"><i class="fas fa-check mr-1"></i>承認する</button>
@@ -727,6 +724,7 @@
                     `;
                 }
 
+                // 電話番号から記号を抜いた数字のみをキーにして、過去のメモを引っ張ってくる
                 const cleanTel = b.tel ? b.tel.replace(/[^0-9]/g, '') : '';
                 const savedMemo = (customerMaster[cleanTel] && customerMaster[cleanTel].memo) ? customerMaster[cleanTel].memo : (b.memo || '');
 
@@ -756,37 +754,6 @@
             });
         };
 
-                // ★ 変更：電話番号から記号を抜いた数字のみをキーにして、過去のメモを引っ張ってくる
-                const cleanTel = b.tel ? b.tel.replace(/[^0-9]/g, '') : '';
-                const savedMemo = (customerMaster[cleanTel] && customerMaster[cleanTel].memo) ? customerMaster[cleanTel].memo : (b.memo || '');
-
-                listContainer.innerHTML += `
-                    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 relative mb-4 transition hover:shadow-md">
-                        <div class="flex justify-between items-center mb-3 border-b border-gray-100 pb-2">
-                            <div class="font-bold text-gray-800 text-sm"><i class="far fa-calendar-alt text-[#3eb4c8] mr-2"></i>${b.date} ${b.time} 〜 <span class="text-xs text-gray-500 font-normal">(計 ${tTime}分)</span></div>
-                            <span class="px-2 py-1 text-[10px] font-black rounded-md ${statusColor}">${statusStr}</span>
-                        </div>
-                        <div class="mb-4">
-                            <p class="font-black text-lg text-gray-800 mb-1">${b.name} 様</p>
-                            <p class="text-xs text-gray-500 mt-1"><i class="fas fa-phone mr-1"></i><a href="tel:${b.tel}" class="text-blue-500 underline">${b.tel}</a></p>
-                            ${emailHtml}
-                            <div class="mt-2 inline-block px-2 py-1 bg-cyan-50 text-[#3eb4c8] text-[10px] font-bold rounded border border-cyan-100"><i class="fas fa-search mr-1"></i>きっかけ：${b.source || '未回答'}</div>
-                            <div class="mt-3 p-2 bg-[#f4eee1] rounded-lg border border-white">
-                                <p class="text-[10px] text-[#3eb4c8] font-bold mb-1">予約メニュー</p>
-                                <p class="text-xs text-gray-700 font-bold leading-relaxed">${b.menu}</p>
-                            </div>
-                        </div>
-                        <div class="mb-4">
-                            <label class="text-[10px] font-bold text-gray-400 mb-1 block"><i class="fas fa-pen mr-1"></i>顧客カルテ（自動保存）</label>
-                            <textarea onchange="window.updateMemo('${b.id}', '${b.tel || ''}', '${b.name || ''}', this.value)" class="w-full h-20 p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-[#3eb4c8] transition-all resize-none" placeholder="前回のメニュー、会話の内容などを自由にメモできます...">${savedMemo}</textarea>
-                        </div>
-                        ${actionButtonsHtml}
-                    </div>
-                `;
-            });
-        };
-
-        // ★ 変更：電話番号（数字のみ）をキーにして顧客マスター（名簿）側にもメモを保存する
         window.updateMemo = async (id, tel, name, text) => { 
             const cleanTel = tel ? tel.replace(/[^0-9]/g, '') : '';
             try { 
@@ -805,7 +772,6 @@
         };
 
         window.rejectBooking = async (id, date, time, totalTimeStr) => {
-            // ★変更：確認メッセージにお客様へのLINE連絡を促す文章を追加しました
             if(!confirm("この予約を「否認」し、枠を空き状態に戻しますか？\n\n【⚠️お願い】\n否認処理の後、お客様へ直接LINE等でご連絡いただき、別の日時や空いている時間へのご変更を案内してあげてください。")) return;
             
             try {
@@ -826,7 +792,6 @@
         };
 
         window.deleteBooking = async (id) => {
-            // ★変更：削除時に不安を取り除くためのメッセージを追加しました
             if(confirm("この予約データ（カルテ）を一覧から削除しますか？\n※この操作は取り消せません。\n\n【💡ご案内】\n顧客カルテに入力された内容は、次回ご予約時にお名前と紐付いて表示されるため、ここで一覧から整理しても問題ありません。")) {
                 try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id)); alert("カルテを一覧から削除しました。"); } catch(e) {}
             }
@@ -956,3 +921,5 @@
             }
         };
     </script>
+</body>
+</html>
