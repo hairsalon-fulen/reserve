@@ -701,18 +701,60 @@
                     : '<i class="fas fa-envelope-open-text mr-1"></i>サンキューメール＆口コミ獲得';
                 const thankYouBtnAction = isThankYouSent ? "" : `onclick="window.sendThankYou('${b.id}', '${b.name}', '${b.email || ''}')"`;
 
+                // ★ ここからUIの分岐を業務フローに合わせて改善しました
                 let actionButtonsHtml = '';
                 if (statusStr === '否認' || statusStr === 'キャンセル') {
                     actionButtonsHtml = `<div class="flex flex-wrap gap-2"><button onclick="window.deleteBooking('${b.id}')" class="w-full py-3 bg-red-500 text-white font-bold rounded-xl text-xs shadow-md hover:bg-red-600 active:scale-95 transition-transform"><i class="fas fa-trash-alt mr-1"></i>このカルテを完全に削除する</button></div>`;
+                } else if (isThankYouSent) {
+                    // サンキューメール送信後は「接客完了」として整理（削除）ボタンに切り替える
+                    actionButtonsHtml = `
+                        <div class="flex flex-col gap-2 mt-2">
+                            <button class="${thankYouBtnClass}">${thankYouBtnText}</button>
+                            <button onclick="window.deleteBooking('${b.id}')" class="w-full py-3 bg-gray-500 text-white font-bold rounded-xl text-xs shadow-md hover:bg-gray-600 active:scale-95 transition-transform"><i class="fas fa-folder-open mr-1"></i>接客完了（一覧からカルテを整理する）</button>
+                        </div>
+                    `;
                 } else {
+                    // 通常時（サンキューメール送信前）
                     actionButtonsHtml = `
                         <div class="flex flex-wrap gap-2">
                             <button onclick="window.approveBooking('${b.id}')" class="flex-1 py-3 bg-green-500 text-white font-bold rounded-xl text-xs shadow-md hover:bg-green-600 active:scale-95 transition-transform"><i class="fas fa-check mr-1"></i>承認する</button>
                             <button onclick="window.rejectBooking('${b.id}', '${b.date}', '${b.time}', '${tTime}')" class="flex-1 py-3 bg-gray-400 text-white font-bold rounded-xl text-xs shadow-md hover:bg-gray-50 active:scale-95 transition-transform"><i class="fas fa-times mr-1"></i>否認(枠開放)</button>
                             <button ${thankYouBtnAction} class="${thankYouBtnClass}">${thankYouBtnText}</button>
                         </div>
+                        <div class="mt-3 text-right">
+                            <button onclick="window.deleteBooking('${b.id}')" class="text-[10px] text-gray-400 hover:text-red-500 underline"><i class="fas fa-trash-alt mr-1"></i>否認せずに一覧から削除する</button>
+                        </div>
                     `;
                 }
+
+                const cleanTel = b.tel ? b.tel.replace(/[^0-9]/g, '') : '';
+                const savedMemo = (customerMaster[cleanTel] && customerMaster[cleanTel].memo) ? customerMaster[cleanTel].memo : (b.memo || '');
+
+                listContainer.innerHTML += `
+                    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 relative mb-4 transition hover:shadow-md">
+                        <div class="flex justify-between items-center mb-3 border-b border-gray-100 pb-2">
+                            <div class="font-bold text-gray-800 text-sm"><i class="far fa-calendar-alt text-[#3eb4c8] mr-2"></i>${b.date} ${b.time} 〜 <span class="text-xs text-gray-500 font-normal">(計 ${tTime}分)</span></div>
+                            <span class="px-2 py-1 text-[10px] font-black rounded-md ${statusColor}">${statusStr}</span>
+                        </div>
+                        <div class="mb-4">
+                            <p class="font-black text-lg text-gray-800 mb-1">${b.name} 様</p>
+                            <p class="text-xs text-gray-500 mt-1"><i class="fas fa-phone mr-1"></i><a href="tel:${b.tel}" class="text-blue-500 underline">${b.tel}</a></p>
+                            ${emailHtml}
+                            <div class="mt-2 inline-block px-2 py-1 bg-cyan-50 text-[#3eb4c8] text-[10px] font-bold rounded border border-cyan-100"><i class="fas fa-search mr-1"></i>きっかけ：${b.source || '未回答'}</div>
+                            <div class="mt-3 p-2 bg-[#f4eee1] rounded-lg border border-white">
+                                <p class="text-[10px] text-[#3eb4c8] font-bold mb-1">予約メニュー</p>
+                                <p class="text-xs text-gray-700 font-bold leading-relaxed">${b.menu}</p>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="text-[10px] font-bold text-gray-400 mb-1 block"><i class="fas fa-pen mr-1"></i>顧客カルテ（自動保存）</label>
+                            <textarea onchange="window.updateMemo('${b.id}', '${b.tel || ''}', '${b.name || ''}', this.value)" class="w-full h-20 p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-[#3eb4c8] transition-all resize-none" placeholder="前回のメニュー、会話の内容などを自由にメモできます...">${savedMemo}</textarea>
+                        </div>
+                        ${actionButtonsHtml}
+                    </div>
+                `;
+            });
+        };
 
                 // ★ 変更：電話番号から記号を抜いた数字のみをキーにして、過去のメモを引っ張ってくる
                 const cleanTel = b.tel ? b.tel.replace(/[^0-9]/g, '') : '';
