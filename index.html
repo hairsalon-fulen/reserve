@@ -125,7 +125,7 @@
                     <span class="text-xs font-bold text-gray-600">【所要目安】</span>
                     <span class="text-sm font-bold text-gray-800" id="totalTimeDisplay">0分</span>
                 </div>
-                <p id="treatmentWarning" class="text-[10px] text-pink-500 font-bold text-center mb-4 hidden bg-pink-50 p-2 rounded-lg">※トリートメント単体のご予約のため、シャンプー代(+800円)と追加時間が上記に自動加算されています。</p>
+                <p id="treatmentWarning" class="text-[10px] text-pink-500 font-bold text-center mb-4 hidden bg-pink-50 p-2 rounded-lg">※トリートメント類単体のご予約のため、シャンプー・ブロー代と追加時間が上記に自動加算されています。</p>
                 <p class="text-[10px] text-center text-gray-500 mb-4">お間違いがなければ次に進んでください。</p>
                 <button onclick="window.goToStep2()" class="w-full brand-btn py-4 text-sm font-bold uppercase tracking-widest">日時を選択する</button>
             </div>
@@ -271,7 +271,6 @@
         import { getFirestore, collection, doc, onSnapshot, setDoc, addDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // ★ FULEN様の各種APIキー・設定
         const NOTIFICATION_CONFIG = {
             emailjs_public_key: "Oppah0LtRqt_gZg6n", 
             emailjs_service_id: "service_4pev8yg", 
@@ -296,20 +295,37 @@
         let isTetrisMode = false;
         let myChart = null;
 
-        // ★ FULEN様 メニューデータ（トリートメント単体時のロジック搭載）
+        // ★ メニュー構造の改修部分（最新の要件・画像を反映）
         const menuData = [
-            { name: "カット（シャンプーなし）", time: 60, price: 3850, desc: "スタンダード", isCut: true, isMain: true },
-            { name: "カラーカット", time: 120, price: 8800, desc: "※全体カラーの場合、当日＋550円", includesCut: true, isMain: true },
-            { name: "パーマ", time: 120, price: 10450, desc: "※カットなし", isCut: false, isMain: true },
-            { name: "デジタルパーマ", time: 180, price: 13750, desc: "※カットなし", isCut: false, isMain: true },
-            { name: "カラーパーマ", time: 180, price: 14850, desc: "※カットなし", isCut: false, isMain: true },
-            { name: "縮毛矯正", time: 180, price: 14850, desc: "ダメージを抑えたワンランク上の縮毛矯正", isCut: false, isMain: true },
-            { name: "髪質改善縮毛矯正", time: 210, price: 17000, desc: "髪質改善特化", isCut: false, isMain: true },
-
-            { name: "トリートメント", time: 30, price: 4180, desc: "※単体でのご予約はシャンプー代(+800円)と時間(+30分)が自動加算されます", isTreatment: true, standaloneExtraTime: 30, standaloneExtraPrice: 800 },
-            { name: "スパトリートメント", time: 40, price: 4950, desc: "※単体でのご予約はシャンプー代(+800円)と時間(+50分)が自動加算されます", isTreatment: true, standaloneExtraTime: 50, standaloneExtraPrice: 800 },
+            // カット系
+            { name: "カット（シャンプーなし）", time: 60, price: 3850, desc: "シャンプーご希望の場合はオプションの「シャンプー」を追加してください", isCut: true, isMain: true },
+            { name: "スクールキッズ 小学生以下", time: 60, price: 2200, desc: "小学生以下のお子様カット", isCut: true, isMain: true },
+            { name: "スクールキッズ 中学生以上(U24)", time: 60, price: 2750, desc: "中学生〜24歳までの学生カット", isCut: true, isMain: true },
             
-            { name: "髪質改善トリートメント", time: 90, price: 7000, desc: "シャンプー込み", isTreatment: false, isMain: true },
+            // カラー・パーマ系（カット込・別）
+            { name: "カラーカット", time: 120, price: 8800, desc: "※全体カラーの場合、当日＋550円", includesCut: true, isMain: true },
+            { name: "カラーリタッチ", time: 90, price: 5280, desc: "※カットなし・根元のみ", isCut: false, isMain: true },
+            { name: "カラー全体", time: 90, price: 6050, desc: "※カットなし・全体染め", isCut: false, isMain: true },
+            { name: "パーマ（カット込）", time: 120, price: 10450, desc: "カット込み", includesCut: true, isMain: true },
+            { name: "デジタルパーマ（カット込）", time: 180, price: 13750, desc: "カット込み", includesCut: true, isMain: true },
+            { name: "カラーパーマ（カット込）", time: 180, price: 14850, desc: "カット込み ※全体カラーの場合、当日＋550円", includesCut: true, isMain: true },
+
+            // 縮毛矯正系
+            { name: "縮毛矯正", time: 180, price: 14850, desc: "ストレートでまとまりのある髪へ", isMain: true },
+            { name: "学生(U24)縮毛矯正", time: 180, price: 12650, desc: "24歳までの学生限定", isMain: true },
+            { name: "髪質改善縮毛矯正", time: 210, price: 17000, desc: "髪質改善特化の縮毛矯正", isMain: true },
+            
+            // 髪質改善系（メイン）
+            { name: "髪質改善トリートメント", time: 90, price: 7000, desc: "シャンプー込み", isMain: true },
+            { name: "シャンプーブロー", time: 30, price: 2100, desc: "シャンプーとブロー・セット（長さにより+1300〜1500円）", isStartingPrice: true, isMain: true },
+
+            // トリートメント・スパ系（単体予約時は自動で料金・時間が加算されるロジック）
+            { name: "トリートメント", time: 30, price: 2750, desc: "※単体ご予約時はシャンプー・ブロー代(+1430円)と時間(+30分)が自動加算されます", isTreatment: true, standaloneExtraTime: 30, standaloneExtraPrice: 1430 },
+            { name: "スパトリートメント", time: 40, price: 3850, desc: "※単体ご予約時はシャンプー・ブロー代(+1100円)と時間(+50分)が自動加算されます", isTreatment: true, standaloneExtraTime: 50, standaloneExtraPrice: 1100 },
+            { name: "スパトリートメントフレン", time: 40, price: 4730, desc: "※単体ご予約時はシャンプー・ブロー代(+1100円)と時間(+50分)が自動加算されます", isTreatment: true, standaloneExtraTime: 50, standaloneExtraPrice: 1100 },
+
+            // オプション系（メインメニューと組み合わせ）
+            { name: "シャンプー", time: 0, price: 880, desc: "カット等にプラスする場合（時間追加なし）", isOption: true },
             { name: "プラスブリーチ", time: 60, price: 5000, desc: "※カラーメニューに追加してください", isOption: true },
             { name: "ダブル・トリプルカラー", time: 0, price: 3500, desc: "※長さによって3500円〜4500円。当日ご案内します", isStartingPrice: true, isOption: true },
             { name: "メニュープラス", time: 25, price: 5000, desc: "追加オプション", isOption: true }
@@ -319,7 +335,6 @@
         let autoHolidays = [];
 
         window.onload = async () => { 
-            // ★ 修正箇所1：EmailJSの初期化（エンジンをかける処理）を追加
             emailjs.init(NOTIFICATION_CONFIG.emailjs_public_key);
 
             try {
@@ -419,7 +434,19 @@
             }
         };
 
-        window.goToStep2 = () => { renderCalendar(); window.changeStep(2); document.getElementById('step2').scrollIntoView({behavior: 'smooth'}); };
+        window.goToStep2 = () => { 
+            // ★ オプション単体での予約を防ぐ安全装置
+            const hasMainMenu = selectedMenus.some(m => m.isMain);
+            const hasTreatment = selectedMenus.some(m => m.isTreatment);
+            if (!hasMainMenu && !hasTreatment) {
+                alert("オプションのみのご予約はできません。メインメニューまたはトリートメントを一緒にご選択ください。");
+                return;
+            }
+            renderCalendar(); 
+            window.changeStep(2); 
+            document.getElementById('step2').scrollIntoView({behavior: 'smooth'}); 
+        };
+        
         window.changeStep = (s) => { 
             document.querySelectorAll('.step-content').forEach(c=>c.classList.remove('active')); 
             document.getElementById(`step${s}`).classList.add('active'); 
@@ -436,7 +463,6 @@
             }
         };
 
-        // ★ カレンダー描画（連続枠チェック機能搭載）
         const renderCalendar = () => {
             const body = document.getElementById('calendarBody'), head = document.getElementById('dateHeader');
             if(!body || !head) return;
@@ -568,7 +594,6 @@
                     }
                 }
 
-                // ★ 修正箇所3：余計なオプションを削り、CORSエラーを防ぐシンプルなPOST送信に統一
                 await fetch(NOTIFICATION_CONFIG.gas_webapp_url, {
                     method: 'POST',
                     body: JSON.stringify({ type: 'new_booking', name: name, tel: tel, source: source, date: selectedDate, time: selectedTime, menu: combinedMenuNames, totalTime: totalTime })
@@ -718,8 +743,6 @@
             if(confirm(`${name}様へサンキューメール＆口コミ獲得メッセージを送信しますか？`)) {
                 try {
                     if (email) {
-                        // ★ 修正箇所2：ハードコードを辞めて、一番上の設定変数（NOTIFICATION_CONFIG）を参照するように統一
-                        // ※EmailJSのテンプレート側で {{email}} {{message}} {{name}} という変数が設定されている必要があります。
                         await emailjs.send(
                             NOTIFICATION_CONFIG.emailjs_service_id,
                             NOTIFICATION_CONFIG.emailjs_template_id, 
@@ -755,13 +778,11 @@
             btn.disabled = true;
 
             try {
-                // fetchのオプションから mode: 'no-cors' や headers を削除し、シンプルにします
                 const response = await fetch(NOTIFICATION_CONFIG.gas_webapp_url, {
                     method: 'POST',
                     body: JSON.stringify({ type: 'verifyAdmin', password: passInput })
                 });
 
-                // ここでGASからの返事（JSON）を読み取ります
                 const result = await response.json();
 
                 if (result.success === true) { 
