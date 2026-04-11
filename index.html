@@ -318,7 +318,8 @@
         const db = getFirestore(app); const auth = getAuth(app); 
         const appId = "hairsalon-fulen"; 
         
-        let reservationData = {}, bookingsList = [], isAdmin = false, isEmergencyStop = false, selectedMenus = [];
+        // ★ 変更：顧客マスター用の変数 customerMaster を追加
+        let reservationData = {}, bookingsList = {}, customerMaster = {}, isAdmin = false, isEmergencyStop = false, selectedMenus = [];
         let selectedDate = "", selectedTime = ""; 
         let isTetrisMode = false;
         let myChart = null;
@@ -393,6 +394,12 @@
             });
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'slots'), snap => { snap.forEach(d => reservationData[d.id] = d.data().status); renderCalendar(); });
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'bookings'), snap => { bookingsList = snap.docs.map(d => ({id:d.id, ...d.data()})); renderAdminBookings(); updateChart(); });
+            
+            // ★ 新規追加：顧客マスター（カルテ）データの監視
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'customers'), snap => {
+                snap.forEach(d => { customerMaster[d.id] = d.data(); });
+                renderAdminBookings(); // 顧客データが更新されたらカルテ一覧も再描画する
+            });
         };
 
         const initMenu = () => {
@@ -707,6 +714,10 @@
                     `;
                 }
 
+                // ★ 変更：電話番号から記号を抜いた数字のみをキーにして、過去のメモを引っ張ってくる
+                const cleanTel = b.tel ? b.tel.replace(/[^0-9]/g, '') : '';
+                const savedMemo = (customerMaster[cleanTel] && customerMaster[cleanTel].memo) ? customerMaster[cleanTel].memo : (b.memo || '');
+
                 listContainer.innerHTML += `
                     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 relative mb-4 transition hover:shadow-md">
                         <div class="flex justify-between items-center mb-3 border-b border-gray-100 pb-2">
@@ -725,7 +736,7 @@
                         </div>
                         <div class="mb-4">
                             <label class="text-[10px] font-bold text-gray-400 mb-1 block"><i class="fas fa-pen mr-1"></i>顧客カルテ（自動保存）</label>
-                            <textarea onchange="window.updateMemo('${b.id}', this.value)" class="w-full h-20 p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-[#3eb4c8] transition-all resize-none" placeholder="前回のメニュー、会話の内容などを自由にメモできます...">${b.memo || ''}</textarea>
+                            <textarea onchange="window.updateMemo('${b.id}', '${b.tel || ''}', '${b.name || ''}', this.value)" class="w-full h-20 p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-[#3eb4c8] transition-all resize-none" placeholder="前回のメニュー、会話の内容などを自由にメモできます...">${savedMemo}</textarea>
                         </div>
                         ${actionButtonsHtml}
                     </div>
@@ -733,7 +744,17 @@
             });
         };
 
-        window.updateMemo = async (id, text) => { try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id), { memo: text }); } catch(e) {} };
+        // ★ 変更：電話番号（数字のみ）をキーにして顧客マスター（名簿）側にもメモを保存する
+        window.updateMemo = async (id, tel, name, text) => { 
+            const cleanTel = tel ? tel.replace(/[^0-9]/g, '') : '';
+            try { 
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id), { memo: text }); 
+                if (cleanTel) {
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'customers', cleanTel), { name: name, memo: text, lastUpdated: serverTimestamp() }, { merge: true });
+                }
+            } catch(e) { console.error("メモ保存エラー", e); } 
+        };
+
         window.approveBooking = async (id) => {
             try {
                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id), { status: '承認済' });
@@ -742,7 +763,7 @@
         };
 
         window.rejectBooking = async (id, date, time, totalTimeStr) => {
-            // ★ここを変更：確認メッセージにお客様へのLINE連絡を促す文章を追加しました
+            // ★変更：確認メッセージにお客様へのLINE連絡を促す文章を追加しました
             if(!confirm("この予約を「否認」し、枠を空き状態に戻しますか？\n\n【⚠️お願い】\n否認処理の後、お客様へ直接LINE等でご連絡いただき、別の日時や空いている時間へのご変更を案内してあげてください。")) return;
             
             try {
@@ -763,8 +784,9 @@
         };
 
         window.deleteBooking = async (id) => {
-            if(confirm("このカルテ（予約データ）を完全に削除しますか？\n※この操作は取り消せません。")) {
-                try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id)); alert("カルテを削除しました。"); } catch(e) {}
+            // ★変更：削除時に不安を取り除くためのメッセージを追加しました
+            if(confirm("この予約データ（カルテ）を一覧から削除しますか？\n※この操作は取り消せません。\n\n【💡ご案内】\n顧客カルテに入力された内容は、次回ご予約時にお名前と紐付いて表示されるため、ここで一覧から整理しても問題ありません。")) {
+                try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id)); alert("カルテを一覧から削除しました。"); } catch(e) {}
             }
         };
 
@@ -850,7 +872,7 @@
                 btn.classList.replace('to-pink-500', 'to-orange-500');
                 alert("カレンダーから、インスタで募集したい「空きの時間枠（◎）」をタップしてください！");
             } else {
-                btn.innerHTML = '<i class="fab fa-instagram text-sm"></i> SNS集集客モードをON';
+                btn.innerHTML = '<i class="fab fa-instagram text-sm"></i> SNS集客モードをON';
                 btn.classList.replace('from-yellow-400', 'from-purple-500');
                 btn.classList.replace('to-orange-500', 'to-pink-500');
             }
@@ -892,5 +914,3 @@
             }
         };
     </script>
-</body>
-</html>
