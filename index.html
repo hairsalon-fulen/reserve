@@ -852,6 +852,11 @@
                     document.getElementById('adminBookingSection').classList.remove('hidden'); 
                     document.getElementById('emergencyBtn').classList.remove('hidden'); 
                     document.getElementById('emergencyOverlay').style.display = 'none'; 
+                    
+                    // ★ 修正箇所：ログイン成功時に、溜まっていた予約データを描画する処理を追加
+                    renderAdminBookings();
+                    updateChart();
+                    
                     window.changeStep(2);
                 } else { 
                     alert("パスワードが違います");
