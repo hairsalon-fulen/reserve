@@ -689,13 +689,28 @@
                 const emailHtml = b.email ? `<p class="text-xs text-gray-500 mt-1"><i class="fas fa-envelope mr-1"></i><a href="mailto:${b.email}" class="text-blue-500 underline">${b.email}</a></p>` : '';
                 const tTime = b.totalTime || 30;
 
+                const hasEmail = b.email && b.email.trim() !== '';
                 const isThankYouSent = b.thankYouSent || false;
-                const thankYouBtnClass = isThankYouSent 
-                    ? "w-full py-3 mt-1 bg-gray-300 text-gray-500 font-bold rounded-xl text-xs shadow-inner cursor-not-allowed" 
-                    : "w-full py-3 mt-1 bg-gradient-to-r from-[#3eb4c8] to-[#1e3a8a] text-white font-bold rounded-xl text-xs shadow-md hover:opacity-90 active:scale-95 transition-transform";
-                const thankYouBtnText = isThankYouSent 
-                    ? '<i class="fas fa-check-circle mr-1"></i>サンキューメール送信済み' 
-                    : '<i class="fas fa-envelope-open-text mr-1"></i>サンキューメール＆口コミ獲得';
+                
+                let thankYouBtnClass = "";
+                let thankYouBtnText = "";
+                
+                if (isThankYouSent) {
+                    thankYouBtnClass = "w-full py-3 mt-1 bg-gray-300 text-gray-500 font-bold rounded-xl text-xs shadow-inner cursor-not-allowed";
+                    thankYouBtnText = hasEmail 
+                        ? '<i class="fas fa-check-circle mr-1"></i>サンキューメール送信済み' 
+                        : '<i class="fas fa-check-circle mr-1"></i>LINE用テキストコピー済み';
+                } else {
+                    if (hasEmail) {
+                        thankYouBtnClass = "w-full py-3 mt-1 bg-gradient-to-r from-[#3eb4c8] to-[#1e3a8a] text-white font-bold rounded-xl text-xs shadow-md hover:opacity-90 active:scale-95 transition-transform";
+                        thankYouBtnText = '<i class="fas fa-envelope-open-text mr-1"></i>サンキューメール＆口コミ獲得';
+                    } else {
+                        // メールアドレスがない場合、緑色のLINEコピーボタンに変更
+                        thankYouBtnClass = "w-full py-3 mt-1 bg-[#22c55e] text-white font-bold rounded-xl text-xs shadow-md hover:opacity-90 active:scale-95 transition-transform";
+                        thankYouBtnText = '<i class="fab fa-line mr-1 text-sm align-baseline"></i> LINE用にテキストをコピーする';
+                    }
+                }
+
                 const thankYouBtnAction = isThankYouSent ? "" : `onclick="window.sendThankYou('${b.id}', '${b.name}', '${b.email || ''}')"`;
 
                 let actionButtonsHtml = '';
@@ -796,23 +811,30 @@
         window.sendThankYou = async (id, name, email) => {
             const msg = `${name}様、先日はHAIRSALON FULENにご来店いただき、誠にありがとうございました！\n\nその後、髪の調子はいかがでしょうか？\nもしセットで分からないことや、気になることがあれば、いつでも公式LINEからご相談くださいね。\n\n【大切なお願いです🙇‍♂️】\nもし先日の仕上がりにご満足いただけておりましたら、お手数ですが下記のリンクからご感想（Google口コミ）をいただけないでしょうか？\n星のタップや、たった一言「よかった！」だけでも大変嬉しいです！\n\n👇こちらから1分で投稿できます\nhttps://g.page/r/CRJELxnv2KoSEBM/review\n\nまたお会いできる日を、心よりお待ちしております！`;
 
-            if(confirm(`${name}様へサンキューメール＆口コミ獲得メッセージを送信しますか？`)) {
-                try {
-                    if (email) {
+            if (email && email.trim() !== '') {
+                if(confirm(`${name}様へサンキューメール＆口コミ獲得メッセージを送信しますか？`)) {
+                    try {
                         await emailjs.send(
                             NOTIFICATION_CONFIG.emailjs_service_id,
                             NOTIFICATION_CONFIG.emailjs_template_id, 
                             { email: email, message: msg, name: name }
                         );
-                    } else {
-                        alert("⚠️ このお客様はメールアドレスの登録がないため、システム上のステータス更新のみ行います。（公式LINE等で直接メッセージをお願いいたします！）");
+                        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id), { thankYouSent: true });
+                        alert(`✨ サンキューメールの処理が完了しました！`);
+                    } catch(e) {
+                        console.error("メール送信エラー", e);
+                        alert("🚨 メール送信に失敗しました。\nEmailJSの設定が正しく完了しているか確認してください。");
                     }
-                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id), { thankYouSent: true });
-                    alert(`✨ サンキューメールの処理が完了しました！`);
-                } catch(e) {
-                    console.error("メール送信エラー", e);
-                    alert("🚨 メール送信に失敗しました。\nEmailJSの設定が正しく完了しているか確認してください。");
                 }
+            } else {
+                navigator.clipboard.writeText(msg).then(async () => {
+                    alert("【LINE用】クリップボードにメッセージをコピーしました！\nお客様のLINE（またはSMS等）を開き、そのまま貼り付けて送信してください。");
+                    try {
+                        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id), { thankYouSent: true });
+                    } catch(e) { console.error(e); }
+                }).catch(() => {
+                    alert("コピーに失敗しました。お手数ですが手動でコピーしてください。");
+                });
             }
         };
 
