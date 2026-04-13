@@ -251,7 +251,7 @@
                 <div>
                     <p class="text-[9px] font-bold text-[#3eb4c8] uppercase tracking-widest mb-2">Address & Parking</p>
                     <p class="text-gray-100 font-medium leading-relaxed mb-3">〒078-8345<br>北海道旭川市東光5条2丁目2-8</p>
-                    <p class="text-sm font-black text-[#3eb4c8] mb-4"><i class="fa-solid fa-check mr-1"></i> 駐車場 店舗前2台</p>
+                    <p class="text-sm font-black text-[#3eb4c8] mb-4"><i class="fa-solid fa-check mr-1"></i> 駐車場 店舗前3台と横月極駐車場 8番、計4台</p>
                     <a href="tel:0166856225" class="text-2xl font-black tracking-widest block mb-4 hover:text-[#3eb4c8] transition">0166-85-6225</a>
                     <a href="https://maps.google.com/?q=北海道旭川市東光5条2丁目2-8" target="_blank" class="inline-flex items-center text-[10px] text-white hover:text-[#3eb4c8] transition border border-white/30 rounded-full px-4 py-2">
                         <i class="fa-solid fa-map-location-dot mr-2"></i>Google Mapで見る
@@ -330,12 +330,16 @@
             { name: "シャンプーカット", time: 60, price: 4730, desc: "シャンプーとカットのセットメニューです", includesCut: true, isMain: true },
             { name: "スクールキッズ 小学生以下", time: 60, price: 2200, desc: "小学生以下のお子様カット", isCut: true, isMain: true },
             { name: "スクールキッズ 中学生以上(U24)", time: 60, price: 2750, desc: "中学生〜24歳までの学生カット", isCut: true, isMain: true },
+            // ★追加1: シャンプー単品（isMainやisTreatmentを付けないことで、自動的に単体予約不可のオプションになります）
+            // ※所要時間は一旦15分に設定しています。必要に応じて数値を変更してください。
+            { name: "シャンプー", time: 0, price: 880, desc: "※単体不可。学生カット等にシャンプーを追加したい場合にお選びください" },
             
             // カラー・パーマ系
             { name: "カラーカット", time: 120, price: 8800, desc: "※全体カラーの場合、当日＋550円", includesCut: true, isMain: true },
             { name: "カラーリタッチ", time: 90, price: 6160, desc: "カットなし・根元3ヶ月以内、シャンプー・ブロー代込", isCut: false, isMain: true },
             { name: "カラー全体", time: 90, price: 6930, desc: "カットなし、シャンプー・ブロー代込", isCut: false, isMain: true },
-            { name: "ブリーチ", time: 60, price: 5500, desc: "※カラーメニューに追加、または単体でご選択ください", isMain: true },
+            // ★修正2: ブリーチ単体注文を防ぐため、`isMain: true` のタグを削除しました。説明文も変更しています。
+            { name: "ブリーチ", time: 60, price: 5500, desc: "※単体でのご予約はできません。他のメニューと組み合わせてご選択ください" },
             { name: "ブリーチダブル・トリプル", time: 40, price: 3850, desc: "美容室相談", isStartingPrice: true, isMain: true },
             { name: "パーマ（カット込）", time: 120, price: 10450, desc: "カット込み", includesCut: true, isMain: true },
             { name: "デジタルパーマ（カット込）", time: 180, price: 13750, desc: "カット込み", includesCut: true, isMain: true },
