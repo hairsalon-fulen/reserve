@@ -374,7 +374,17 @@
 
             // トリートメント・スパ系
             // 【修正後】
-{ name: "トリートメント", time: 30, price: 2750, desc: "トリートメントの種類により異なります。※単体ご予約時は別途加算あり", isTreatment: true, isStartingPrice: true, standaloneExtraTime: 30, standaloneExtraPrice: 1430 },
+// 予約システムの menuData 内のトリートメント箇所
+{ 
+  name: "トリートメント〜", 
+  time: 30, 
+  price: 2750, 
+  desc: "トリートメントの種類により異なります。※単体時はS・B代(+1430円)が加算されます", 
+  isTreatment: true, 
+  isStartingPrice: true, // これで自動的に「〜」が付きます
+  standaloneExtraTime: 30, 
+  standaloneExtraPrice: 1430 
+},
             { name: "クイックヘッドスパ付きトリートメント", time: 40, price: 3850, desc: "トリートメント種類により3850円〜 ※単体ご予約時はシャンプー・ブロー代(+1100円)と時間(+50分)が自動加算されます", isStartingPrice: true, isTreatment: true, standaloneExtraTime: 50, standaloneExtraPrice: 1100 }
         ];
 
