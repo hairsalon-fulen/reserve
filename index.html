@@ -56,13 +56,47 @@
 <body>
 
     <div id="emergencyOverlay">
-        <div class="text-6xl mb-6 text-[#1e3a8a]">⚙️</div>
-        <h2 class="text-2xl font-black text-[#1e3a8a] mb-4">ただいま予約受付を一時停止しております</h2>
-        <p class="text-sm text-gray-500 leading-relaxed mb-8">ご不便をおかけして誠に申し訳ございません。<br>現在、予約システムの調整を行っておりますため、<br>しばらく経ってから再度アクセスをお願いいたします。</p>
-        <p class="text-[10px] text-gray-400 font-bold mb-2 uppercase tracking-widest text-center">営業時間内のお急ぎのご連絡</p>
-        <a href="tel:0166856225" class="text-2xl font-black text-gray-800 block mb-1 text-center">0166-85-6225</a>
-        <p class="text-[10px] text-[#3eb4c8] font-bold text-center mt-2">※営業時間外・定休日は対応できかねますので<br>あらかじめご了承ください。</p>
+        <div class="text-6xl mb-6">⚙️</div>
+        <h2 class="text-2xl font-black text-gray-800 mb-4">ただいま予約受付を一時停止しております</h2>
+        <p class="text-sm text-gray-500 leading-relaxed mb-8">
+            ご不便をおかけして誠に申し訳ございません。<br>
+            現在、予約システムの調整を行っております。<br>
+            <span class="font-bold text-[#ff7283] mt-2 block">ご予約は、お電話もしくはLINE、InstagramのDMにて承っております。</span>
+        </p>
+        
+        <p class="text-[10px] text-gray-400 font-bold mb-2 uppercase tracking-widest text-center">ご予約・お問い合わせ</p>
+        <a href="tel:0166378631" class="text-2xl font-black text-gray-700 block mb-6 text-center hover:opacity-80 transition-opacity">0166-37-8631</a>
+        
+        <div class="flex justify-center gap-6 mb-8">
+            <a href="https://lin.ee/L8Z2tVsG" target="_blank" class="w-14 h-14 rounded-full bg-[#06C755] text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+                <i class="fab fa-line text-3xl"></i>
+            </a>
+            <a href="https://www.instagram.com/hair_buzl/" target="_blank" class="w-14 h-14 rounded-full bg-gradient-to-tr from-[#f09433] via-[#e6683c] to-[#bc1888] text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+                <i class="fab fa-instagram text-3xl"></i>
+            </a>
+        </div>
+
+        <p class="text-[10px] text-[#ff7283] font-bold text-center">※営業時間外・定休日（月曜）は対応できかねますので<br>あらかじめご了承ください。</p>
+        <p class="mt-12 text-[10px] text-gray-300 font-bold uppercase tracking-[0.3em]">Official hair Buzl</p>
     </div>
+    ```
+
+変更点は以下の通りです [cite: 187, 188, 189]。
+* 「お電話もしくはLINE、DMでご予約ください」というメッセージを強調して追加しました。
+* お客様がスマホからワンタップでLINEやInstagramを開けるように、丸いアイコンボタンを配置しました（リンク先はフッターに設定されていた公式のものを流用しています） [cite: 222, 223]。
+
+これを反映してGitHubにプッシュ（更新）すれば、即座に画面が切り替わります。
+
+---
+
+### 📝 次のステップについて
+
+文面の変更が完了したら、次はフレンさんのおっしゃる**「既に入ってる予約の反映」**と**「使い方の説明（マニュアル化）」**ですね。
+
+* **既存予約の反映（ブロック）:** フレンさんに管理者画面に入ってもらい、カレンダーの「◎」をタップして「×」にしていく作業になります [cite: 178, 179]。
+* **マニュアル:** その作業手順を含めた、スマホ用のかんたんな使い方マニュアルを私が作成します。
+
+まずは上記のHTMLの更新をお願いいたします。終わりましたら教えてくださいね！一気に進めていきましょう！
 
     <div id="adminAuthModal" class="modal-overlay">
         <div class="bg-white p-6 rounded-2xl w-80 max-w-[90%] text-center shadow-2xl">
