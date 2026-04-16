@@ -940,14 +940,54 @@
             }
         };
 
+        // ★ここから：テトリスモードの自動計算機能付きコードに差し替え
         window.openTetrisModal = (dateStr, timeStr) => {
             const parts = dateStr.split('-');
-            const month = parseInt(parts[1], 10); const day = parseInt(parts[2], 10);
-            const text = `【急募枠のお知らせ📢】\n\n急なキャンセル等により、ぽっかり空き時間ができました！\n\n✨ ${month}/${day} ${timeStr}〜 ご案内可能です✨\n\nご希望の方は、プロフィールのURLから1分でご予約いただけます🏃‍♀️💨\n\n#旭川美容室 #フレン #FULEN #東光`;
+            const month = parseInt(parts[1], 10);
+            const day = parseInt(parts[2], 10);
+
+            // 1. タップした時間から、下に向かって連続で「◎」がいくつあるか数える
+            let consecutiveSlots = 0;
+            const startIndex = timeSlots.indexOf(timeStr);
+            if (startIndex !== -1) {
+                for (let i = startIndex; i < timeSlots.length; i++) {
+                    const checkSlotId = `${dateStr}_${timeSlots[i]}`;
+                    // スプレッドシート（Firebase）のデータを見て、空き(ok)ならカウントアップ
+                    const status = reservationData[checkSlotId] || 'ok';
+                    if (status === 'ok') {
+                        consecutiveSlots++;
+                    } else {
+                        break; // 「×」や「ー」にぶつかったら数えるのをやめる
+                    }
+                }
+            }
+            
+            // 2. 枠数 × 30分 で、最大の空き時間を計算する
+            const maxMinutes = consecutiveSlots * 30;
+
+            // 3. 空き時間に合わせて、提案するメニューの文章を自動で変える
+            let menuSuggestion = "";
+            if (maxMinutes >= 150) {
+                menuSuggestion = "（カット＋カラーや縮毛矯正なども大歓迎です！✂️）";
+            } else if (maxMinutes >= 120) {
+                menuSuggestion = "（カット＋カラーや、カット＋パーマ等も可能です✂️）";
+            } else if (maxMinutes >= 90) {
+                menuSuggestion = "（カラーやトリートメント等も可能です✨）";
+            } else if (maxMinutes >= 60) {
+                menuSuggestion = "（カットなどのメニューが可能です✂️）";
+            } else {
+                menuSuggestion = "（前髪カットなどのクイックメニューが可能です🫧）";
+            }
+
+            // 4. インスタ用の文章を組み立てる（店舗名もFULENに変更）
+            const text = `【急募枠のお知らせ📢】\n\n急なキャンセル等により、ぽっかり空き時間ができました！\n\n✨ ${month}/${day} ${timeStr}〜 ご案内可能です✨\n※最大${maxMinutes}分までのメニューがお受けできます\n${menuSuggestion}\n\n普段なかなか予約が取れない方も、今がチャンスです！\n\nご予約はプロフィールのリンクから1分で完了します🏃‍♀️💨\n\n#旭川美容室 #東光 #HAIRSALONFULEN`;
+            
             document.getElementById('tetrisText').value = text;
             document.getElementById('tetrisModal').style.display = 'flex';
+            
             window.toggleTetrisMode(); 
         };
+        // ★ここまで
 
         window.copyTetrisText = () => {
             const copyText = document.getElementById('tetrisText').value;
