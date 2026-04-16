@@ -940,24 +940,41 @@
             }
         };
 
-        // ★ここから：テトリスモードの自動計算機能付きコードに差し替え
+        // ★ここから：テトリスモードの自動計算機能付きコード（営業時間ストップ対応版）
         window.openTetrisModal = (dateStr, timeStr) => {
             const parts = dateStr.split('-');
             const month = parseInt(parts[1], 10);
             const day = parseInt(parts[2], 10);
+            
+            // 曜日や祝日を判定
+            const d = new Date(dateStr);
+            const dayOfWeek = d.getDay(); // 0が日曜
+            const isSundayOrHoliday = (dayOfWeek === 0) || autoHolidays.includes(dateStr);
 
             // 1. タップした時間から、下に向かって連続で「◎」がいくつあるか数える
             let consecutiveSlots = 0;
             const startIndex = timeSlots.indexOf(timeStr);
             if (startIndex !== -1) {
                 for (let i = startIndex; i < timeSlots.length; i++) {
-                    const checkSlotId = `${dateStr}_${timeSlots[i]}`;
+                    const t = timeSlots[i];
+                    
+                    // ★FULEN様の営業時間外ならストップする処理を追加
+                    // 平日・土曜は19:00以降（18:30が最終枠）
+                    const isWeekdaySatClosed = (!isSundayOrHoliday && t >= '19:00');
+                    // 日曜・祝日は18:00以降（17:30が最終枠）
+                    const isSunHolClosed = (isSundayOrHoliday && t >= '18:00');
+                    
+                    if (isWeekdaySatClosed || isSunHolClosed) {
+                        break; // 営業時間外にぶつかったら数えるのをやめる
+                    }
+
+                    const checkSlotId = `${dateStr}_${t}`;
                     // スプレッドシート（Firebase）のデータを見て、空き(ok)ならカウントアップ
                     const status = reservationData[checkSlotId] || 'ok';
                     if (status === 'ok') {
                         consecutiveSlots++;
                     } else {
-                        break; // 「×」や「ー」にぶつかったら数えるのをやめる
+                        break; // 「×」にぶつかったら数えるのをやめる
                     }
                 }
             }
@@ -979,7 +996,7 @@
                 menuSuggestion = "（前髪カットなどのクイックメニューが可能です🫧）";
             }
 
-            // 4. インスタ用の文章を組み立てる（店舗名もFULENに変更）
+            // 4. インスタ用の文章を組み立てる
             const text = `【急募枠のお知らせ📢】\n\n急なキャンセル等により、ぽっかり空き時間ができました！\n\n✨ ${month}/${day} ${timeStr}〜 ご案内可能です✨\n※最大${maxMinutes}分までのメニューがお受けできます\n${menuSuggestion}\n\n普段なかなか予約が取れない方も、今がチャンスです！\n\nご予約はプロフィールのリンクから1分で完了します🏃‍♀️💨\n\n#旭川美容室 #東光 #HAIRSALONFULEN`;
             
             document.getElementById('tetrisText').value = text;
