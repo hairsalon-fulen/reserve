@@ -948,8 +948,9 @@
             
             // 曜日や祝日を判定
             const d = new Date(dateStr);
-            const dayOfWeek = d.getDay(); // 0が日曜
-            const isSundayOrHoliday = (dayOfWeek === 0) || autoHolidays.includes(dateStr);
+            const dayOfWeek = d.getDay(); // 0が日曜、4が木曜
+            const isPublicHoliday = autoHolidays.includes(dateStr);
+            const isSundayOrHoliday = (dayOfWeek === 0) || isPublicHoliday;
 
             // 1. タップした時間から、下に向かって連続で「◎」がいくつあるか数える
             let consecutiveSlots = 0;
@@ -958,14 +959,23 @@
                 for (let i = startIndex; i < timeSlots.length; i++) {
                     const t = timeSlots[i];
                     
-                    // ★FULEN様の営業時間外ならストップする処理を追加
-                    // 平日・土曜は19:00以降（18:30が最終枠）
-                    const isWeekdaySatClosed = (!isSundayOrHoliday && t >= '19:00');
-                    // 日曜・祝日は18:00以降（17:30が最終枠）
-                    const isSunHolClosed = (isSundayOrHoliday && t >= '18:00');
-                    
-                    if (isWeekdaySatClosed || isSunHolClosed) {
-                        break; // 営業時間外にぶつかったら数えるのをやめる
+                    // ★FULEN様の正確な営業時間外判定（木曜・日祝・それ以外）
+                    const timeNum = parseInt(t.replace(':', ''), 10);
+                    let isClosed = false;
+
+                    if (dayOfWeek === 4 && !isPublicHoliday) {
+                        // 木曜日は22:00閉店
+                        if (timeNum >= 2200) isClosed = true;
+                    } else if (isSundayOrHoliday) {
+                        // 日曜・祝日は17:00閉店
+                        if (timeNum >= 1700) isClosed = true;
+                    } else {
+                        // 火水金土は19:00閉店
+                        if (timeNum >= 1900) isClosed = true;
+                    }
+
+                    if (isClosed) {
+                        break; // 営業時間外にぶつかったら数えるのをストップ
                     }
 
                     const checkSlotId = `${dateStr}_${t}`;
@@ -974,7 +984,7 @@
                     if (status === 'ok') {
                         consecutiveSlots++;
                     } else {
-                        break; // 「×」にぶつかったら数えるのをやめる
+                        break; // 「×」にぶつかったら数えるのをストップ
                     }
                 }
             }
