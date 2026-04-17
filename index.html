@@ -541,7 +541,7 @@
             while (currentDate <= endDate) { dates.push(new Date(currentDate)); currentDate.setDate(currentDate.getDate() + 1); }
 
             dates.forEach(d => {
-                if (d.getDay() === 5) { head.innerHTML += `<th class="time-col sticky-top">TIME</th>`; }
+                // ★ダブりの原因だった行を削除★
                 const label = `${d.getMonth()+1}/${d.getDate()}`;
                 const dayStr = ['日','月','火','水','木','金','土'][d.getDay()];
                 let colorClass = 'text-gray-600';
@@ -560,7 +560,7 @@
                 let rowHtml = `<td class="time-col sticky-left">${t}</td>`;
                 
                 dates.forEach(d => {
-                    if (d.getDay() === 5) { rowHtml += `<td class="time-col">${t}</td>`; }
+                    // ★ダブりの原因だった行を削除★
 
                     const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
                     const slotId = `${dateStr}_${t}`;
