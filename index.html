@@ -126,15 +126,14 @@
                 console.error("監視エラー:", error);
             });
         });
-
-        const updateUI = () => {
+const updateUI = () => {
             const overlay = document.getElementById('emergencyOverlay');
             if (overlay) overlay.style.display = (isEmergencyStop && !isAdmin) ? 'flex' : 'none';
             
             const btn = document.getElementById('emergencyBtn');
             if(btn) {
                 btn.innerText = isEmergencyStop ? '🛑 停止中 (解除)' : '✅ 稼働中 (停止)';
-                btn.style.backgroundColor = isEmergencyStop ? '#059669' : '#dc2626'; // 緑 or 赤
+                btn.style.backgroundColor = isEmergencyStop ? '#059669' : '#dc2626';
                 btn.classList.remove('hidden');
             }
         };
@@ -164,19 +163,18 @@
                     updateUI();
                 } else { alert("パスワードが違います"); }
             } catch (e) {
-                alert("認証エラーが発生しました。GASの設定を確認してください。");
+                alert("認証エラーが発生しました。");
             }
         };
 
         window.toggleEmergencyStop = async () => {
             try {
-                // 書き込み先をルールで許可したパスに完全一致させる
+                // APP_IDを使って正しい場所に書き込みます
                 const docRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'settings', 'emergency');
                 await setDoc(docRef, { active: !isEmergencyStop }, { merge: true });
-                console.log("状態を更新しました");
             } catch (e) {
                 console.error("書き込みエラー:", e);
-                alert("停止操作に失敗しました。権限設定を再確認してください。");
+                alert("停止操作に失敗しました。Firebaseのルール設定を再確認してください。");
             }
         };
     </script>
