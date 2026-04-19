@@ -3,182 +3,190 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>hair salon FULEN | 予約システム</title>
+    <title>hair salon | 予約システム</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <style>
-        :root { --brand-color: #8a7a6b; --accent-red: #ff7283; }
-        body { font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif; }
-        /* 緊急停止時のオーバーレイ */
+        :root { --brand-color: #8a7a6b; --hpb-pink: #ff7283; }
+        body { font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif; background-color: #fcfcfc; color: #333; }
+        
+        /* ★画像(image_52f722.png)のUIを完全再現したオーバーレイ */
         #emergencyOverlay {
-            display: none;
+            display: none; /* 初期状態は非表示 */
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.95);
+            inset: 0;
+            background: #ffffff;
             z-index: 9999;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
+            padding: 2rem;
             text-align: center;
-            padding: 20px;
         }
+        .emergency-icon {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 24px;
+        }
+        .emergency-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333333;
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+        }
+        .emergency-text {
+            font-size: 16px;
+            color: #666666;
+            margin-bottom: 32px;
+        }
+        .emergency-call-btn {
+            background-color: #333333;
+            color: #ffffff;
+            font-weight: 700;
+            padding: 16px 48px;
+            border-radius: 9999px;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+        
+        /* 既存のBuzl様用スタイルを継承 [cite: 160-186] */
+        .calendar-outer-wrapper { overflow-x: auto; background: white; border: 1px solid #ddd; border-radius: 12px; }
+        .hpb-table { width: max-content; min-width: 100%; border-collapse: separate; border-spacing: 0; }
+        .hpb-table th, .hpb-table td { border: 0.5px solid #f0f0f0; text-align: center; height: 60px; min-width: 80px; }
+        .status-ok { color: var(--hpb-pink); cursor: pointer; }
+        .status-ng { color: #ddd; background-color: #fafafa; cursor: not-allowed; }
     </style>
 </head>
-<body class="bg-stone-50 text-stone-800">
+<body>
 
     <div id="emergencyOverlay">
-        <i class="fas fa-exclamation-triangle text-6xl text-red-500 mb-4"></i>
-        <h2 class="text-2xl font-bold mb-2">ただいま予約受付を停止しております</h2>
-        <p>恐れ入りますが、お電話にてお問い合わせください。</p>
-        <a href="tel:0000000000" class="mt-4 bg-stone-800 text-white px-6 py-2 rounded-full">電話をかける</a>
+        <svg class="emergency-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 4L3 20H21L12 4Z" fill="#ff5252"/>
+            <path d="M12 9V14M12 17H12.01" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <h2 class="emergency-title">ただいま予約受付を停止しております</h2>
+        <p class="emergency-text">恐れ入りますが、お電話にてお問い合わせください。</p>
+        <a href="tel:0166378631" class="emergency-call-btn">電話をかける</a>
     </div>
 
-    <header class="bg-white border-b sticky top-0 z-50 px-4 py-3">
-        <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <div class="flex items-center">
-                <img src="logo.png" alt="FULEN" class="h-8 w-auto object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                <span class="hidden font-bold text-xl ml-2">FULEN</span>
-            </div>
-            <button onclick="openAdminModal()" class="text-xs text-stone-400 border border-stone-200 px-2 py-1 rounded">管理者</button>
+    <div id="adminAuthModal" class="fixed inset-0 bg-black/70 hidden z-[10000] flex items-center justify-center p-4">
+        <div class="bg-white p-6 rounded-2xl w-full max-w-sm text-center shadow-2xl">
+            <h3 class="font-bold text-gray-800 mb-4">管理者パスワード</h3>
+            <input type="password" id="adminPass" class="w-full p-4 bg-gray-50 border rounded-xl mb-4 text-center tracking-widest" placeholder="PASSWORD">
+            <button onclick="window.verifyAdmin()" class="w-full py-4 bg-blue-600 text-white font-bold rounded-xl mb-2">認証する</button>
+            <button onclick="document.getElementById('adminAuthModal').style.display='none'; document.getElementById('adminToggle').checked=false;" class="w-full py-4 bg-gray-100 text-gray-600 rounded-xl">キャンセル</button>
         </div>
-    </header>
+    </div>
 
-    <main class="max-w-4xl mx-auto p-4 pb-20">
-        <div id="calendarContainer" class="bg-white rounded-xl shadow-sm p-4 mb-6">
-            <div id="currentMonthDisplay" class="text-center font-bold mb-4">読み込み中...</div>
-            <div id="calendarGrid" class="grid grid-cols-7 gap-1"></div>
+    <div class="bg-stone-900 p-2 flex justify-between items-center text-[10px] text-white">
+        <div class="flex items-center gap-2">
+            <span class="text-blue-400 font-bold">ADMIN MODE</span>
+            <button id="emergencyBtn" class="hidden bg-red-600 px-2 py-1 rounded font-bold" onclick="window.toggleEmergencyStop()">
+                稼働中(緊急停止)
+            </button>
         </div>
-
-        <section id="adminSection" class="hidden mt-8 bg-stone-800 text-white p-6 rounded-2xl shadow-xl">
-            <h3 class="text-xl font-bold mb-4 border-b border-stone-600 pb-2">管理者コントロールパネル</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="bg-stone-700 p-4 rounded-lg">
-                    <p class="text-sm mb-2">緊急停止スイッチ</p>
-                    <button id="emergencyBtn" onclick="toggleEmergency()" class="w-full py-2 rounded font-bold transition">
-                        確認中...
-                    </button>
-                </div>
-                <div class="bg-stone-700 p-4 rounded-lg">
-                    <p class="text-sm mb-2">管理者ログアウト</p>
-                    <button onclick="location.reload()" class="w-full py-2 bg-stone-500 rounded font-bold">ログアウト</button>
-                </div>
+        <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="adminToggle" onchange="window.toggleAdminMode(this.checked)" class="hidden">
+            <div id="toggleBar" class="w-8 h-4 bg-stone-700 rounded-full relative transition-colors">
+                <div id="toggleCircle" class="w-3 h-3 bg-white rounded-full absolute top-0.5 left-0.5 transition-transform"></div>
             </div>
-        </section>
+            <span>MODE: <span id="modeLabel">OFF</span></span>
+        </label>
+    </div>
+
+    <main class="max-w-4xl mx-auto p-4">
+        <div id="step1" class="step-content active">
+            <div id="menuList" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6"></div>
+        </div>
+        
+        <div id="adminBookingSection" class="hidden mt-8">
+            <h2 class="text-lg font-bold border-l-4 border-blue-500 pl-2 mb-4">顧客カルテ（予約一覧）</h2>
+            <div id="adminBookingList" class="space-y-4"></div>
+        </div>
     </main>
-
-    <div id="adminAuthModal" class="fixed inset-0 bg-black/50 hidden z-[60] flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl p-6 w-full max-w-sm">
-            <h3 class="text-lg font-bold mb-4 text-center">管理者認証</h3>
-            <input type="password" id="adminPass" class="w-full border p-3 rounded-lg mb-4" placeholder="パスワードを入力">
-            <div class="flex gap-2">
-                <button onclick="closeAdminModal()" class="flex-1 py-3 bg-stone-200 rounded-lg">戻る</button>
-                <button onclick="submitAdminAuth()" id="authSubmitBtn" class="flex-1 py-3 bg-stone-800 text-white rounded-lg">認証</button>
-            </div>
-        </div>
-    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, doc, onSnapshot, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, onSnapshot, setDoc, updateDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // --- 設定エリア ---
-        const firebaseConfig = { 
-            apiKey: "AIzaSyAZPUpUdLpbKbOJGJ6NhOiCqkqRS-tKwCQ", 
-            authDomain: "hairsalon-fulen.firebaseapp.com",
-            projectId: "hairsalon-fulen",
-            appId: "1:757183537058:web:7aeee2f1fbb4268af29cfb"
-        };
+        // 設定：FULEN様/Buzl様に応じてAPP_IDを変更 [cite: 226, 227]
+        const firebaseConfig = { apiKey: "AIzaSyAZPUpUdLpbKbOJGJ6NhOiCqkqRS-tKwCQ", authDomain: "hair-buzl-reserve.firebaseapp.com", projectId: "hair-buzl-reserve", appId: "1:757183537058:web:7aeee2f1fbb4268af29cfb" };
         const GAS_URL = "https://script.google.com/macros/s/AKfycbw-NeET9N2mNYYMRoEhB9OyGW9lVvDCRj9QF0fn_cdKsaqkN7W809k-huZRnOmgfdf3/exec";
-        const APP_ID = "hairsalon-fulen";
+        const APP_ID = "hair-buzl-reserve";
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
 
         let isAdmin = false;
-        let emergencyActive = false;
+        let isEmergencyStop = false;
 
-        // 1. 初期化・認証
-        signInAnonymously(auth).catch(err => console.error("Auth Error:", err));
-
-        // 2. リアルタイム監視（緊急停止フラグ）
-        onSnapshot(doc(db, 'artifacts', APP_ID, 'public', 'data', 'settings', 'emergency'), (snap) => {
-            if (snap.exists()) {
-                emergencyActive = snap.data().active;
-                updateEmergencyUI();
-            }
+        // 1. 認証とリアルタイム同期 [cite: 238-242]
+        signInAnonymously(auth).then(() => {
+            // 緊急停止フラグの監視
+            onSnapshot(doc(db, 'artifacts', APP_ID, 'public', 'data', 'settings', 'emergency'), (snap) => {
+                isEmergencyStop = snap.exists() ? snap.data().active : false;
+                updateSystemUI();
+            });
         });
 
-        const updateEmergencyUI = () => {
+        const updateSystemUI = () => {
+            // 案内画面の制御
             const overlay = document.getElementById('emergencyOverlay');
+            overlay.style.display = (isEmergencyStop && !isAdmin) ? 'flex' : 'none';
+
+            // 管理者ボタンの制御
             const eBtn = document.getElementById('emergencyBtn');
+            if(eBtn) {
+                eBtn.innerText = isEmergencyStop ? '🛑 停止中 (解除する)' : '✅ 稼働中 (緊急停止)';
+                eBtn.className = isEmergencyStop ? 'bg-green-600 px-2 py-1 rounded font-bold' : 'bg-red-600 px-2 py-1 rounded font-bold';
+            }
+        };
 
-            // 一般ユーザーかつ停止中の場合
-            if (emergencyActive && !isAdmin) {
-                overlay.style.display = 'flex';
+        // 2. 管理者認証 (GAS連携) [cite: 268-273]
+        window.toggleAdminMode = (checked) => {
+            if(checked) {
+                document.getElementById('adminAuthModal').style.display = 'flex';
             } else {
-                overlay.style.display = 'none';
-            }
-
-            // 管理者ボタンの状態更新
-            if (eBtn) {
-                eBtn.innerText = emergencyActive ? '🛑 停止中（解除する）' : '✅ 稼働中（停止する）';
-                eBtn.className = emergencyActive 
-                    ? 'w-full py-2 bg-green-600 rounded font-bold' 
-                    : 'w-full py-2 bg-red-600 rounded font-bold';
+                isAdmin = false;
+                document.getElementById('modeLabel').innerText = 'OFF';
+                document.getElementById('adminBookingSection').classList.add('hidden');
+                document.getElementById('emergencyBtn').classList.add('hidden');
+                updateSystemUI();
             }
         };
 
-        // 3. 管理者認証（GAS連携）
-        window.openAdminModal = () => document.getElementById('adminAuthModal').style.display = 'flex';
-        window.closeAdminModal = () => document.getElementById('adminAuthModal').style.display = 'none';
-
-        window.submitAdminAuth = async () => {
+        window.verifyAdmin = async () => {
             const pass = document.getElementById('adminPass').value;
-            const btn = document.getElementById('authSubmitBtn');
-            btn.innerText = "認証中...";
-            btn.disabled = true;
-
             try {
-                const response = await fetch(GAS_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ type: 'verifyAdmin', password: pass })
-                });
-                const res = await response.json();
-
-                if (res.success) {
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ type: 'verifyAdmin', password: pass }) });
+                const data = await res.json();
+                if(data.success) {
                     isAdmin = true;
-                    alert("管理者ログイン成功");
-                    closeAdminModal();
-                    document.getElementById('adminSection').classList.remove('hidden');
-                    updateEmergencyUI();
+                    document.getElementById('modeLabel').innerText = 'ON';
+                    document.getElementById('adminAuthModal').style.display = 'none';
+                    document.getElementById('adminBookingSection').classList.remove('hidden');
+                    document.getElementById('emergencyBtn').classList.remove('hidden');
+                    updateSystemUI();
                 } else {
-                    alert("パスワードが違います");
+                    alert("パスワードが正しくありません");
                 }
-            } catch (e) {
-                alert("認証エラーが発生しました");
-            } finally {
-                btn.innerText = "認証";
-                btn.disabled = false;
-            }
+            } catch (e) { alert("認証エラー"); }
         };
 
-        // 4. 緊急停止の切り替え（Firebase更新）
-        window.toggleEmergency = async () => {
-            if (!isAdmin) return;
-            const newState = !emergencyActive;
-            const ref = doc(db, 'artifacts', APP_ID, 'public', 'data', 'settings', 'emergency');
-            try {
-                await setDoc(ref, { active: newState }, { merge: true });
-                alert(newState ? "予約を停止しました" : "予約受付を再開しました");
-            } catch (e) {
-                alert("更新に失敗しました");
-            }
+        // 3. 緊急停止の切り替え [cite: 243, 244]
+        window.toggleEmergencyStop = async () => {
+            const newState = !isEmergencyStop;
+            await setDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'settings', 'emergency'), { active: newState });
         };
 
+        // ※ その他、カレンダー描画(renderCalendar)やメニュー初期化(initMenu)は
+        // 既存の Buzl様インデックスコードのロジックをここに統合してください。
     </script>
 </body>
 </html>
