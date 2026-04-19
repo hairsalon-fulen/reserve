@@ -95,7 +95,7 @@
         import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
-       // ★ FULEN様専用設定
+        // ★ FULEN様専用・開通設定（ここを一度だけ書くことでエラーを防ぎます）
         const firebaseConfig = { 
             apiKey: "AIzaSyAZPUpUdLpbKbOJGJ6NhOiCqkqRS-tKwCQ", 
             authDomain: "hairsalon-fulen.firebaseapp.com", 
@@ -103,14 +103,7 @@
             appId: "1:757183537058:web:7aeee2f1fbb4268af29cfb" 
         };
         const GAS_URL = "https://script.google.com/macros/s/AKfycbw-NeET9N2mNYYMRoEhB9OyGW9lVvDCRj9QF0fn_cdKsaqkN7W809k-huZRnOmgfdf3/exec";
-        
-        // 【最重要】ここが Firebase のコレクション名（hairsalon-fulen）と一致している必要があります
-        const APP_ID = "hairsalon-fulen";
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbw-NeET9N2mNYYMRoEhB9OyGW9lVvDCRj9QF0fn_cdKsaqkN7W809k-huZRnOmgfdf3/exec";
-        
-        // 【ここが最重要！】Firebaseの画面にある名前と完全に一致させる必要があります
         const APP_ID = "hairsalon-fulen"; 
-        const appId = "hairsalon-fulen"; // 念のため小文字版も同じ名前にしておきます
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -119,28 +112,20 @@
         let isAdmin = false;
         let isEmergencyStop = false;
 
-        // 匿名ログインしてリアルタイム監視開始
+        // 監視スタート
         signInAnonymously(auth).then(() => {
-            // データの読み込み先をルールに合わせる
             onSnapshot(doc(db, 'artifacts', APP_ID, 'public', 'data', 'settings', 'emergency'), (snap) => {
-                if (snap.exists()) {
-                    isEmergencyStop = snap.data().active;
-                } else {
-                    isEmergencyStop = false;
-                }
+                isEmergencyStop = snap.exists() ? snap.data().active : false;
                 updateUI();
-            }, (error) => {
-                console.error("監視エラー:", error);
             });
         });
-const updateUI = () => {
+
+        const updateUI = () => {
             const overlay = document.getElementById('emergencyOverlay');
             if (overlay) overlay.style.display = (isEmergencyStop && !isAdmin) ? 'flex' : 'none';
-            
             const btn = document.getElementById('emergencyBtn');
             if(btn) {
                 btn.innerText = isEmergencyStop ? '🛑 停止中 (解除)' : '✅ 稼働中 (停止)';
-                // ルールに適合した状態であれば、ここでボタンの色が即座に変わります
                 btn.style.backgroundColor = isEmergencyStop ? '#059669' : '#dc2626';
                 btn.classList.remove('hidden');
             }
@@ -148,42 +133,29 @@ const updateUI = () => {
 
         window.toggleAdminMode = (chk) => {
             if(chk) document.getElementById('adminAuthModal').style.display = 'flex';
-            else {
-                isAdmin = false;
-                document.getElementById('modeLabel').innerText = 'OFF';
-                document.getElementById('adminSection').classList.add('hidden');
-                document.getElementById('emergencyBtn').classList.add('hidden');
-                updateUI();
-            }
+            else { isAdmin = false; document.getElementById('modeLabel').innerText = 'OFF'; updateUI(); }
         };
 
         window.verifyAdmin = async () => {
             const pass = document.getElementById('adminPass').value;
-            try {
-                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ type: 'verifyAdmin', password: pass }) });
-                const data = await res.json();
-                if(data.success) {
-                    isAdmin = true;
-                    document.getElementById('modeLabel').innerText = 'ON';
-                    document.getElementById('adminAuthModal').style.display = 'none';
-                    document.getElementById('adminSection').classList.remove('hidden');
-                    document.getElementById('emergencyBtn').classList.remove('hidden');
-                    updateUI();
-                } else { alert("パスワードが違います"); }
-            } catch (e) {
-                alert("認証エラーが発生しました。");
-            }
+            const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ type: 'verifyAdmin', password: pass }) });
+            const data = await res.json();
+            if(data.success) {
+                isAdmin = true;
+                document.getElementById('modeLabel').innerText = 'ON';
+                document.getElementById('adminAuthModal').style.display = 'none';
+                document.getElementById('adminSection')?.classList.remove('hidden');
+                document.getElementById('emergencyBtn')?.classList.remove('hidden');
+                updateUI();
+            } else { alert("パスワードが違います"); }
         };
 
         window.toggleEmergencyStop = async () => {
             try {
-                // 【最重要】ルールで許可された 'artifacts/hairsalon-fulen/...' のパスに1文字の狂いもなく合わせました
-                const docRef = doc(db, 'artifacts', 'hairsalon-fulen', 'public', 'data', 'settings', 'emergency');
+                const docRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'settings', 'emergency');
                 await setDoc(docRef, { active: !isEmergencyStop }, { merge: true });
-                console.log("書き込み成功");
             } catch (e) {
-                console.error("書き込みエラー:", e);
-                alert("停止操作に失敗しました。Firebaseのルール設定とパスが一致しているか再確認が必要です。");
+                alert("通信エラー：Firebaseのルールと住所が一致しているか確認してください");
             }
         };
     </script>
