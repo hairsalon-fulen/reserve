@@ -62,10 +62,11 @@
             現在、予約システムの調整を行っております。<br>
             <span class="font-bold text-[#3eb4c8] mt-2 block">ご予約は、お電話もしくはLINE、InstagramのDMにて承っております。</span>
         </p>
-        <a href="tel:0166856225" class="text-2xl font-black text-gray-700 block mb-6 text-center hover:opacity-80 transition-opacity">0166-85-6225</a>
+        <p class="text-[10px] text-gray-400 font-bold mb-2 uppercase tracking-widest text-center">ご予約・お問い合わせ</p>
+        <a href="tel:0166856225" class="text-2xl font-black text-gray-700 block mb-6 text-center">0166-85-6225</a>
         <div class="flex justify-center gap-6 mb-8">
-            <a href="https://lin.ee/ssZ02vd" target="_blank" class="w-14 h-14 rounded-full bg-[#06C755] text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform"><i class="fab fa-line text-3xl"></i></a>
-            <a href="https://www.instagram.com/fulen.asahikawa/" target="_blank" class="w-14 h-14 rounded-full bg-gradient-to-tr from-[#f09433] via-[#e6683c] to-[#bc1888] text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform"><i class="fab fa-instagram text-3xl"></i></a>
+            <a href="https://lin.ee/ssZ02vd" target="_blank" class="w-14 h-14 rounded-full bg-[#06C755] text-white flex items-center justify-center shadow-lg"><i class="fab fa-line text-3xl"></i></a>
+            <a href="https://www.instagram.com/fulen.asahikawa/" target="_blank" class="w-14 h-14 rounded-full bg-gradient-to-tr from-[#f09433] via-[#e6683c] to-[#bc1888] text-white flex items-center justify-center shadow-lg"><i class="fab fa-instagram text-3xl"></i></a>
         </div>
         <p class="mt-12 text-[10px] text-gray-300 font-bold uppercase tracking-[0.3em]">Official HAIRSALON FULEN</p>
     </div>
@@ -73,28 +74,33 @@
     <div id="adminAuthModal" class="modal-overlay">
         <div class="bg-white p-6 rounded-2xl w-80 max-w-[90%] text-center shadow-2xl">
             <h3 class="font-black text-[#1e3a8a] mb-4">管理者パスワード</h3>
-            <input type="password" id="adminPass" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl mb-4 text-center tracking-widest outline-none" placeholder="PASSWORD">
-            <button onclick="window.verifyAdmin()" class="w-full py-3 bg-[#1e3a8a] text-white font-bold rounded-xl mb-2">認証する</button>
-            <button onclick="document.getElementById('adminToggle').click(); document.getElementById('adminAuthModal').style.display='none'" class="w-full py-3 bg-gray-100 text-gray-600 font-bold rounded-xl">キャンセル</button>
+            <input type="password" id="adminPass" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl mb-4 text-center tracking-widest focus:ring-2 focus:ring-[#3eb4c8] outline-none" placeholder="PASSWORD">
+            <button onclick="window.verifyAdmin()" class="w-full py-3 bg-[#1e3a8a] text-white font-bold rounded-xl mb-2 shadow-md">認証する</button>
+            <button onclick="document.getElementById('adminToggle').checked = false; document.getElementById('adminAuthModal').style.display='none'" class="w-full py-3 bg-gray-100 text-gray-600 font-bold rounded-xl">キャンセル</button>
         </div>
     </div>
 
     <div class="admin-panel p-2 flex justify-between items-center text-xs">
         <div class="flex items-center gap-2">
-            <div class="flex items-center gap-1 font-black uppercase tracking-tighter text-[#3eb4c8]"><span class="w-2 h-2 rounded-full bg-[#3eb4c8]"></span> ADMIN</div>
+            <div class="flex items-center gap-1 font-black uppercase tracking-tighter text-[#3eb4c8]">
+                <span class="w-2 h-2 rounded-full bg-[#3eb4c8] shadow-[0_0_8px_#3eb4c8]"></span> ADMIN
+             </div>
             <button id="emergencyBtn" class="hidden bg-red-600 text-white text-[10px] font-black px-2 py-1 rounded-md" onclick="window.toggleEmergencyStop()">稼働中</button>
         </div>
         <label class="relative inline-flex items-center cursor-pointer scale-75 transform origin-right">
             <input type="checkbox" id="adminToggle" class="sr-only peer" onchange="window.toggleAdminMode(this.checked)">
-            <div class="w-11 h-6 bg-gray-700 rounded-full peer peer-checked:bg-[#3eb4c8] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+            <div class="w-11 h-6 bg-gray-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-[#3eb4c8] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
             <span class="ml-2 font-bold text-white">MODE: <span id="modeLabel">OFF</span></span>
         </label>
     </div>
 
     <section class="hero-section">
-        <div class="fade-in-up h-16 md:h-20 mb-6 flex items-center justify-center drop-shadow-xl"><img src="fulen_logo1.png" alt="FULEN ロゴ" class="h-full object-contain"></div>
-        <h2 class="fade-in-up text-xl md:text-3xl font-serif-jp text-white mb-6 tracking-widest leading-relaxed">HAIRSALON FULEN</h2>
-        <button onclick="document.getElementById('reservation-section').scrollIntoView({behavior: 'smooth'})" class="mt-8 fade-in-up bg-[#3eb4c8] text-white font-bold py-3 px-8 rounded-full shadow-xl text-xs uppercase">予約へ進む</button>
+        <p class="fade-in-up text-[10px] font-bold text-[#3eb4c8] tracking-[0.3em] uppercase mb-4">RESERVATION</p>
+        <div class="fade-in-up h-16 md:h-20 mb-6 flex items-center justify-center">
+            <img src="fulen_logo1.png" alt="FULEN ロゴ" class="h-full object-contain">
+        </div>
+        <h2 class="fade-in-up text-xl md:text-3xl font-serif-jp text-white mb-6 tracking-widest">HAIRSALON FULEN</h2>
+        <button onclick="document.getElementById('reservation-section').scrollIntoView({behavior: 'smooth'})" class="mt-8 fade-in-up bg-[#3eb4c8] text-white font-bold py-3 px-8 rounded-full shadow-xl tracking-widest text-xs">予約へ進む</button>
     </section>
 
     <div id="reservation-section" class="pt-8"></div>
@@ -106,47 +112,50 @@
         <div id="stepHeader4" class="flex-1 py-3 text-center text-gray-300 font-bold text-[10px]">完了</div>
     </div>
 
-    <main class="max-w-4xl mx-auto p-4 pb-24 text-center md:text-left mt-8">
+    <main class="max-w-4xl mx-auto p-4 pb-24 mt-8">
+        
         <div id="step1" class="step-content active">
-            <h2 class="text-sm font-bold border-l-4 border-[#3eb4c8] pl-2 text-[#1e3a8a] mb-4 text-left">メニューを選択（複数可）</h2>
+            <h2 class="text-sm font-bold border-l-4 border-[#3eb4c8] pl-2 text-[#1e3a8a] mb-4">メニューを選択（複数可）</h2>
             <div id="menuList" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6"></div>
             <div id="step1Footer" class="bg-white p-5 rounded-2xl border-2 border-[#3eb4c8] shadow-2xl sticky bottom-4 hidden z-50">
                 <div class="flex justify-between items-center mb-2"><span class="text-xs font-bold text-gray-600">【お会計予定】</span><span class="text-xl font-black text-[#1e3a8a]" id="totalPriceDisplay">¥0</span></div>
                 <div class="flex justify-between items-center mb-4"><span class="text-xs font-bold text-gray-600">【所要目安】</span><span class="text-sm font-bold text-gray-800" id="totalTimeDisplay">0分</span></div>
-                <button onclick="window.goToStep2()" class="w-full brand-btn py-4 text-sm font-bold uppercase">日時を選択する</button>
+                <button onclick="window.goToStep2()" class="w-full brand-btn py-4 text-sm font-bold uppercase tracking-widest">日時を選択する</button>
             </div>
         </div>
 
         <div id="step2" class="step-content">
-            <h2 class="text-sm font-bold border-l-4 border-[#3eb4c8] pl-2 text-[#1e3a8a] mb-4 text-left">ご希望の日時を選択</h2>
+            <h2 class="text-sm font-bold border-l-4 border-[#3eb4c8] pl-2 text-[#1e3a8a] mb-4">ご希望の日時を選択</h2>
             <div class="calendar-outer-wrapper shadow-lg">
                 <table class="hpb-table" id="calendarTable">
                     <thead><tr id="dateHeader"></tr></thead>
                     <tbody id="calendarBody"></tbody>
                 </table>
             </div>
-            <div id="adminBookingSection" class="mt-12 hidden text-left bg-gray-50 p-4 rounded-2xl border border-gray-200">
+
+            <div id="adminBookingSection" class="mt-12 hidden text-left bg-gray-50 p-6 rounded-2xl border border-gray-200">
                 <h3 class="font-black text-gray-800 mb-4 text-base flex items-center gap-2"><span class="text-[#3eb4c8] font-black text-xl">|</span> 顧客カルテ</h3>
-                <div id="adminBookingList" class="space-y-5"></div>
+                <div id="adminBookingList" class="space-y-4"></div>
             </div>
+
             <button onclick="window.changeStep(1)" class="mt-6 w-full py-4 border-2 border-gray-200 text-gray-500 font-bold rounded-full text-xs">メニュー選択へ戻る</button>
         </div>
 
         <div id="step3" class="step-content">
-            <h2 class="text-sm font-bold border-l-4 border-[#3eb4c8] pl-2 mb-4 text-[#1e3a8a] text-left">お客様情報の入力</h2>
+            <h2 class="text-sm font-bold border-l-4 border-[#3eb4c8] pl-2 mb-4 text-[#1e3a8a]">お客様情報の入力</h2>
             <div class="bg-[#f4eee1] p-6 rounded-2xl shadow-md mb-6">
                 <p id="selectedDateTimeDisplay" class="text-lg font-black text-[#1e3a8a] mb-6 text-center"></p>
-                <input type="text" id="custName" class="w-full p-4 mb-4 bg-white border border-gray-200 rounded-xl text-sm" placeholder="お名前">
-                <input type="tel" id="custTel" class="w-full p-4 mb-4 bg-white border border-gray-200 rounded-xl text-sm" placeholder="電話番号">
-                <input type="email" id="custEmail" class="w-full p-4 mb-4 bg-white border border-gray-200 rounded-xl text-sm" placeholder="メールアドレス（任意）">
+                <input type="text" id="custName" class="w-full p-4 mb-4 bg-white border border-gray-200 rounded-xl text-sm outline-none" placeholder="お名前">
+                <input type="tel" id="custTel" class="w-full p-4 mb-4 bg-white border border-gray-200 rounded-xl text-sm outline-none" placeholder="電話番号">
+                <input type="email" id="custEmail" class="w-full p-4 mb-4 bg-white border border-gray-200 rounded-xl text-sm outline-none" placeholder="メールアドレス（任意）">
             </div>
             <button id="finalSubmitBtn" onclick="window.submitBooking()" class="w-full py-5 brand-btn font-bold text-sm uppercase">仮予約を送信する</button>
         </div>
 
         <div id="step4" class="step-content text-center py-16">
-            <div class="w-20 h-20 bg-[#3eb4c8] text-white rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-lg"><i class="fa-solid fa-check"></i></div>
+            <div class="w-20 h-20 bg-[#3eb4c8] text-white rounded-full flex items-center justify-center text-4xl mx-auto mb-6"><i class="fa-solid fa-check"></i></div>
             <h2 class="text-2xl font-black text-[#1e3a8a] mb-2">仮予約を受け付けました</h2>
-            <button onclick="location.reload()" class="brand-btn px-10 py-4 font-bold text-xs">予約トップへ戻る</button>
+            <button onclick="location.reload()" class="brand-btn px-10 py-4 font-bold text-xs uppercase">予約トップへ戻る</button>
         </div>
     </main>
 
@@ -159,8 +168,7 @@
         const firebaseConfig = { apiKey: "AIzaSyCfiR-LrhgdcjT-rSXLIRI3tlC0LGhIjRQ", authDomain: "hairsalon-fulen.firebaseapp.com", projectId: "hairsalon-fulen", storageBucket: "hairsalon-fulen.firebasestorage.app", messagingSenderId: "294997014666", appId: "1:294997014666:web:24cfd1cedeb78adf4e5573" };
 
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app); const auth = getAuth(app); 
-        const appId = "hairsalon-fulen"; 
+        const db = getFirestore(app); const auth = getAuth(app); const appId = "hairsalon-fulen"; 
         
         let reservationData = {}, bookingsList = [], isAdmin = false, selectedMenus = [];
         let selectedDate = "", selectedTime = ""; 
@@ -233,10 +241,9 @@
 
         window.unselectSlot = (date, time) => { if (isAdmin) setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'slots', `${date}_${time}`), { status: 'ok' }); };
 
-        // ★予約送信（枠を自動で埋める処理を追加）
         window.submitBooking = async () => {
             const name = document.getElementById('custName').value, tel = document.getElementById('custTel').value, email = document.getElementById('custEmail').value;
-            if (!name || !tel) return alert("入力してください");
+            if (!name || !tel) return alert("お名前と電話番号は必須です");
             const btn = document.getElementById('finalSubmitBtn'); btn.disabled = true; btn.innerText = "送信中...";
             
             let totalTime = 0; selectedMenus.forEach(m => totalTime += m.time);
@@ -245,28 +252,28 @@
             const startIndex = timeSlots.indexOf(selectedTime);
 
             try {
-                // 1. 予約データを追加
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'bookings'), { name, tel, email, date: selectedDate, time: selectedTime, menu: menuNames, status: '未承認', createdAt: serverTimestamp() });
-                
-                // 2. 所要時間分の枠をすべて「×」にする
                 for (let i = 0; i < slotsToFill; i++) {
                     if (startIndex + i < timeSlots.length) {
                         const sId = `${selectedDate}_${timeSlots[startIndex + i]}`;
                         await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'slots', sId), { status: 'ng' });
                     }
                 }
-                
-                // 3. GASへ通知
                 fetch(NOTIFICATION_CONFIG.gas_webapp_url, { method: 'POST', body: JSON.stringify({ type: 'new_booking', name, tel, date: selectedDate, time: selectedTime, menu: menuNames }) });
                 window.changeStep(4);
             } catch (e) { alert("エラーが発生しました"); btn.disabled = false; btn.innerText = "仮予約を送信する"; }
         };
 
+        // ★サンキューメール送信（GAS経由）
         window.sendThankYouEmail = async (id, name, email) => {
             const booking = bookingsList.find(b => b.id === id);
-            if(confirm(`${name}様へメールを送信しますか？`)) {
+            if(confirm(`${name}様へサンキューメール（Gmail）を送信しますか？`)) {
                 try {
-                    await fetch(NOTIFICATION_CONFIG.gas_webapp_url, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ type: 'sendThankYouEmail', email: email, name: name, menu: booking.menu, id: id }) });
+                    await fetch(NOTIFICATION_CONFIG.gas_webapp_url, { 
+                        method: 'POST', 
+                        mode: 'no-cors', 
+                        body: JSON.stringify({ type: 'sendThankYouEmail', email: email, name: name, menu: booking.menu, id: id }) 
+                    });
                     await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bookings', id), { thankYouSent: true });
                     alert(`✨ 送信依頼を完了しました。`);
                 } catch(e) { alert("失敗しました"); }
@@ -275,17 +282,26 @@
 
         window.renderAdminBookings = () => {
             const list = document.getElementById('adminBookingList'); list.innerHTML = "";
-            bookingsList.sort((a,b) => b.createdAt?.toDate() - a.createdAt?.toDate()).forEach(b => {
+            bookingsList.sort((a,b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0)).forEach(b => {
                 const btnHtml = b.email ? `<button onclick="window.sendThankYouEmail('${b.id}', '${b.name}', '${b.email}')" class="w-full mt-2 py-2 bg-blue-500 text-white rounded-lg text-xs font-bold">サンキューメール送信</button>` : '';
                 list.innerHTML += `<div class="bg-white p-4 border rounded-xl mb-2"><p class="font-bold">${b.date} ${b.time} / ${b.name}様</p><p class="text-xs text-gray-500">${b.menu}</p>${btnHtml}</div>`;
             });
         };
 
-        window.toggleAdminMode = (chk) => { if(chk) document.getElementById('adminAuthModal').style.display='flex'; else { isAdmin=false; document.getElementById('adminBookingSection').classList.add('hidden'); } };
+        window.toggleAdminMode = (chk) => { if(chk) document.getElementById('adminAuthModal').style.display='flex'; else { isAdmin=false; document.getElementById('modeLabel').innerText='OFF'; document.getElementById('adminBookingSection').classList.add('hidden'); } };
+        
         window.verifyAdmin = async () => { 
-            const res = await fetch(NOTIFICATION_CONFIG.gas_webapp_url, { method: 'POST', body: JSON.stringify({ type: 'verifyAdmin', password: document.getElementById('adminPass').value }) });
-            const data = await res.json();
-            if(data.success) { isAdmin=true; document.getElementById('adminAuthModal').style.display='none'; document.getElementById('adminBookingSection').classList.remove('hidden'); renderAdminBookings(); } else alert("パスワードが違います");
+            const passInput = document.getElementById('adminPass').value;
+            try {
+                const res = await fetch(NOTIFICATION_CONFIG.gas_webapp_url, { method: 'POST', body: JSON.stringify({ type: 'verifyAdmin', password: passInput }) });
+                const data = await res.json();
+                if(data.success) { 
+                    isAdmin=true; document.getElementById('modeLabel').innerText='ON'; 
+                    document.getElementById('adminAuthModal').style.display='none'; 
+                    document.getElementById('adminBookingSection').classList.remove('hidden'); 
+                    renderAdminBookings(); 
+                } else alert("パスワードが違います");
+            } catch(e) { alert("認証エラー（GASのデプロイURLを確認してください）"); }
         };
     </script>
 </body>
