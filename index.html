@@ -95,7 +95,7 @@
         import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
-        // ★ FULEN様専用設定
+       // ★ FULEN様専用設定
         const firebaseConfig = { 
             apiKey: "AIzaSyAZPUpUdLpbKbOJGJ6NhOiCqkqRS-tKwCQ", 
             authDomain: "hairsalon-fulen.firebaseapp.com", 
@@ -103,7 +103,10 @@
             appId: "1:757183537058:web:7aeee2f1fbb4268af29cfb" 
         };
         const GAS_URL = "https://script.google.com/macros/s/AKfycbw-NeET9N2mNYYMRoEhB9OyGW9lVvDCRj9QF0fn_cdKsaqkN7W809k-huZRnOmgfdf3/exec";
-        const APP_ID = "hairsalon-fulen"; // ここがルールのパスと一致します
+        
+        // 【ここが最重要！】Firebaseの画面にある名前と完全に一致させる必要があります
+        const APP_ID = "hairsalon-fulen"; 
+        const appId = "hairsalon-fulen"; // 念のため小文字版も同じ名前にしておきます
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
