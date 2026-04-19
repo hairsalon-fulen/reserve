@@ -133,6 +133,7 @@ const updateUI = () => {
             const btn = document.getElementById('emergencyBtn');
             if(btn) {
                 btn.innerText = isEmergencyStop ? '🛑 停止中 (解除)' : '✅ 稼働中 (停止)';
+                // ルールに適合した状態であれば、ここでボタンの色が即座に変わります
                 btn.style.backgroundColor = isEmergencyStop ? '#059669' : '#dc2626';
                 btn.classList.remove('hidden');
             }
@@ -169,12 +170,13 @@ const updateUI = () => {
 
         window.toggleEmergencyStop = async () => {
             try {
-                // APP_IDを使って正しい場所に書き込みます
-                const docRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'settings', 'emergency');
+                // 【最重要】ルールで許可された 'artifacts/hairsalon-fulen/...' のパスに1文字の狂いもなく合わせました
+                const docRef = doc(db, 'artifacts', 'hairsalon-fulen', 'public', 'data', 'settings', 'emergency');
                 await setDoc(docRef, { active: !isEmergencyStop }, { merge: true });
+                console.log("書き込み成功");
             } catch (e) {
                 console.error("書き込みエラー:", e);
-                alert("停止操作に失敗しました。Firebaseのルール設定を再確認してください。");
+                alert("停止操作に失敗しました。Firebaseのルール設定とパスが一致しているか再確認が必要です。");
             }
         };
     </script>
