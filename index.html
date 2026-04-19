@@ -3,118 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>hair salon | 予約システム</title>
+    <title>hair Buzl 【ヘアーバズール】 | 旭川 東光の美容室</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        :root { --brand-color: #8a7a6b; --hpb-pink: #ff7283; }
-        body { font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif; background-color: #fcfcfc; color: #333; }
+        :root { --hpb-pink: #ff7283; --hpb-border: #eee; --admin-blue: #3b82f6; --brand-color: #8a7a6b; }
+        body { font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif; background-color: #fcfcfc; color: #333; -webkit-tap-highlight-color: transparent; scroll-behavior: smooth;}
         
-        /* ★画像(image_52f722.png)のUIを完全再現したオーバーレイ */
+        /* 1. 【復元】緊急停止案内（image_52f722.pngのデザイン） */
         #emergencyOverlay {
-            display: none; /* 初期状態は非表示 */
-            position: fixed;
-            inset: 0;
-            background: #ffffff;
+            display: none; 
+            position: fixed; 
+            inset: 0; 
+            background: #ffffff; 
             z-index: 9999;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 2rem; 
             text-align: center;
         }
-        .emergency-icon {
-            width: 80px;
-            height: 80px;
-            margin-bottom: 24px;
-        }
-        .emergency-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: #333333;
-            margin-bottom: 12px;
-            letter-spacing: -0.02em;
-        }
-        .emergency-text {
-            font-size: 16px;
-            color: #666666;
-            margin-bottom: 32px;
-        }
-        .emergency-call-btn {
-            background-color: #333333;
-            color: #ffffff;
-            font-weight: 700;
-            padding: 16px 48px;
-            border-radius: 9999px;
-            text-decoration: none;
-            transition: opacity 0.2s;
-        }
-        
-        /* 既存のBuzl様用スタイルを継承 [cite: 160-186] */
+        .em-icon { width: 80px; height: 80px; margin-bottom: 24px; color: #ef4444; }
+        .em-title { font-size: 24px; font-weight: 700; color: #333; margin-bottom: 12px; letter-spacing: -0.02em; }
+        .em-text { font-size: 16px; color: #666; margin-bottom: 32px; }
+        .em-btn { background-color: #2d2d2d; color: #fff; font-weight: 700; padding: 16px 48px; border-radius: 9999px; text-decoration: none; }
+
+        /* 2. 【復元】管理者バーとトグル（image_52fe08.pngのデザイン） [cite: 182, 192, 193] */
+        .admin-panel { background: #1a1a1a; color: white; border-bottom: 2px solid var(--admin-blue); }
+        .hpb-pink-btn { background: linear-gradient(to bottom, #ff8c99, #ff7283); color: white !important; border-radius: 6px; box-shadow: 0 2px 4px rgba(255, 114, 131, 0.3); }
+
+        /* 3. 【復元】カレンダー・テーブルスタイル [cite: 171, 172, 173, 179, 180] */
         .calendar-outer-wrapper { overflow-x: auto; background: white; border: 1px solid #ddd; border-radius: 12px; }
         .hpb-table { width: max-content; min-width: 100%; border-collapse: separate; border-spacing: 0; }
         .hpb-table th, .hpb-table td { border: 0.5px solid #f0f0f0; text-align: center; height: 60px; min-width: 80px; }
-        .status-ok { color: var(--hpb-pink); cursor: pointer; }
-        .status-ng { color: #ddd; background-color: #fafafa; cursor: not-allowed; }
+        .status-ok { color: var(--hpb-pink); cursor: pointer; font-size: 24px; font-weight: bold; }
+        .status-ng { color: #ddd; background-color: #fafafa; cursor: not-allowed; font-size: 20px; }
+        
+        /* 既存の共通アニメーション [cite: 169, 170] */
+        .fade-in-up { animation: fadeInUp 1s ease-out forwards; opacity: 0; transform: translateY(20px); }
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
     <div id="emergencyOverlay">
-        <svg class="emergency-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 4L3 20H21L12 4Z" fill="#ff5252"/>
+        <svg class="em-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 4L3 20H21L12 4Z" fill="currentColor"/>
             <path d="M12 9V14M12 17H12.01" stroke="white" stroke-width="2" stroke-linecap="round"/>
         </svg>
-        <h2 class="emergency-title">ただいま予約受付を停止しております</h2>
-        <p class="emergency-text">恐れ入りますが、お電話にてお問い合わせください。</p>
-        <a href="tel:0166378631" class="emergency-call-btn">電話をかける</a>
+        <h2 class="em-title">ただいま予約受付を停止しております</h2>
+        <p class="em-text">恐れ入りますが、お電話にてお問い合わせください。</p>
+        <a href="tel:0166378631" class="em-btn">電話をかける</a>
     </div>
 
-    <div id="adminAuthModal" class="fixed inset-0 bg-black/70 hidden z-[10000] flex items-center justify-center p-4">
-        <div class="bg-white p-6 rounded-2xl w-full max-w-sm text-center shadow-2xl">
-            <h3 class="font-bold text-gray-800 mb-4">管理者パスワード</h3>
-            <input type="password" id="adminPass" class="w-full p-4 bg-gray-50 border rounded-xl mb-4 text-center tracking-widest" placeholder="PASSWORD">
-            <button onclick="window.verifyAdmin()" class="w-full py-4 bg-blue-600 text-white font-bold rounded-xl mb-2">認証する</button>
-            <button onclick="document.getElementById('adminAuthModal').style.display='none'; document.getElementById('adminToggle').checked=false;" class="w-full py-4 bg-gray-100 text-gray-600 rounded-xl">キャンセル</button>
-        </div>
-    </div>
-
-    <div class="bg-stone-900 p-2 flex justify-between items-center text-[10px] text-white">
+    <div class="admin-panel p-2 flex justify-between items-center text-xs">
         <div class="flex items-center gap-2">
-            <span class="text-blue-400 font-bold">ADMIN MODE</span>
-            <button id="emergencyBtn" class="hidden bg-red-600 px-2 py-1 rounded font-bold" onclick="window.toggleEmergencyStop()">
+            <div class="flex items-center gap-1 font-black uppercase tracking-tighter text-blue-400">
+                <span class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_#3b82f6]"></span>
+                ADMIN MODE
+            </div>
+            <button id="emergencyBtn" class="hidden bg-red-600 text-white text-[10px] font-black px-2 py-1 rounded-md shadow-md" onclick="window.toggleEmergencyStop()">
                 稼働中(緊急停止)
             </button>
         </div>
-        <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" id="adminToggle" onchange="window.toggleAdminMode(this.checked)" class="hidden">
-            <div id="toggleBar" class="w-8 h-4 bg-stone-700 rounded-full relative transition-colors">
-                <div id="toggleCircle" class="w-3 h-3 bg-white rounded-full absolute top-0.5 left-0.5 transition-transform"></div>
-            </div>
-            <span>MODE: <span id="modeLabel">OFF</span></span>
+        <label class="relative inline-flex items-center cursor-pointer scale-75 transform origin-right">
+            <input type="checkbox" id="adminToggle" class="sr-only peer" onchange="window.toggleAdminMode(this.checked)">
+            <div class="w-11 h-6 bg-gray-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+            <span class="ml-2 font-bold text-white uppercase">Mode: <span id="modeLabel">Off</span></span>
         </label>
     </div>
 
-    <main class="max-w-4xl mx-auto p-4">
+    <div id="adminAuthModal" class="fixed inset-0 bg-black/70 hidden z-[10000] flex items-center justify-center p-4">
+        <div class="bg-white p-6 rounded-2xl w-80 max-w-[90%] text-center shadow-2xl">
+            <h3 class="font-black text-gray-800 mb-4">管理者パスワード</h3>
+            <input type="password" id="adminPass" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl mb-4 text-center tracking-widest" placeholder="PASSWORD">
+            <button onclick="window.verifyAdmin()" class="w-full py-3 bg-blue-600 text-white font-bold rounded-xl mb-2">認証する</button>
+            <button onclick="document.getElementById('adminToggle').click(); document.getElementById('adminAuthModal').style.display='none'" class="w-full py-3 bg-gray-100 text-gray-600 font-bold rounded-xl">キャンセル</button>
+        </div>
+    </div>
+
+    <section class="hero-section flex flex-col items-center py-12">
+        <img src="logo.png" alt="hair Buzl" class="w-32 h-32 rounded-full shadow-2xl mb-6 object-cover border-4 border-white" onerror="this.src='https://lh3.googleusercontent.com/a-/ALV-UjVbHWQd0csOkekj3lV7gy4llZw3My08KAjvNZ1jUMXr4j3TUmQ=s265-w265-h265'">
+        <h2 class="text-xl md:text-2xl font-bold text-gray-700 text-center px-4 leading-relaxed">365日、鏡を見るのが<br>楽しくなる艶髪へ。</h2>
+    </section>
+
+    <main class="max-w-4xl mx-auto p-4 pb-24">
         <div id="step1" class="step-content active">
             <div id="menuList" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6"></div>
         </div>
         
-        <div id="adminBookingSection" class="hidden mt-8">
-            <h2 class="text-lg font-bold border-l-4 border-blue-500 pl-2 mb-4">顧客カルテ（予約一覧）</h2>
+        <div id="adminBookingSection" class="mt-16 hidden">
+            <h2 class="text-sm font-bold border-l-4 border-blue-500 pl-2 text-blue-600 mb-4 uppercase">Bookings Management</h2>
             <div id="adminBookingList" class="space-y-4"></div>
         </div>
     </main>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, doc, onSnapshot, setDoc, updateDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // 設定：FULEN様/Buzl様に応じてAPP_IDを変更 [cite: 226, 227]
+        // ★ 接続設定（Buzl様専用プロジェクト） [cite: 226, 227]
         const firebaseConfig = { apiKey: "AIzaSyAZPUpUdLpbKbOJGJ6NhOiCqkqRS-tKwCQ", authDomain: "hair-buzl-reserve.firebaseapp.com", projectId: "hair-buzl-reserve", appId: "1:757183537058:web:7aeee2f1fbb4268af29cfb" };
         const GAS_URL = "https://script.google.com/macros/s/AKfycbw-NeET9N2mNYYMRoEhB9OyGW9lVvDCRj9QF0fn_cdKsaqkN7W809k-huZRnOmgfdf3/exec";
         const APP_ID = "hair-buzl-reserve";
@@ -126,33 +118,41 @@
         let isAdmin = false;
         let isEmergencyStop = false;
 
-        // 1. 認証とリアルタイム同期 [cite: 238-242]
-        signInAnonymously(auth).then(() => {
-            // 緊急停止フラグの監視
-            onSnapshot(doc(db, 'artifacts', APP_ID, 'public', 'data', 'settings', 'emergency'), (snap) => {
-                isEmergencyStop = snap.exists() ? snap.data().active : false;
-                updateSystemUI();
+        // 初期化とリアルタイム同期 [cite: 238-242]
+        window.onload = () => {
+            signInAnonymously(auth);
+            onAuthStateChanged(auth, user => {
+                if(user) {
+                    // 緊急停止フラグの監視
+                    onSnapshot(doc(db, 'artifacts', APP_ID, 'public', 'data', 'settings', 'emergency'), (snap) => {
+                        isEmergencyStop = snap.exists() ? snap.data().active : false;
+                        updateSystemUI();
+                    });
+                    // カレンダーと予約の監視（既存ロジック）
+                    startDataSync();
+                }
             });
-        });
+        };
 
         const updateSystemUI = () => {
-            // 案内画面の制御
+            // 緊急停止案内の表示制御（管理者は常にスルー） [cite: 238]
             const overlay = document.getElementById('emergencyOverlay');
             overlay.style.display = (isEmergencyStop && !isAdmin) ? 'flex' : 'none';
 
-            // 管理者ボタンの制御
-            const eBtn = document.getElementById('emergencyBtn');
-            if(eBtn) {
-                eBtn.innerText = isEmergencyStop ? '🛑 停止中 (解除する)' : '✅ 稼働中 (緊急停止)';
-                eBtn.className = isEmergencyStop ? 'bg-green-600 px-2 py-1 rounded font-bold' : 'bg-red-600 px-2 py-1 rounded font-bold';
+            // 管理者バーのボタン状態 [cite: 239, 240]
+            const btn = document.getElementById('emergencyBtn');
+            if(btn) {
+                btn.innerText = isEmergencyStop ? '🛑 停止中 (解除する)' : '✅ 稼働中 (緊急停止)';
+                btn.className = isEmergencyStop 
+                    ? 'bg-green-600 text-white text-[10px] font-black px-2 py-1 rounded-md' 
+                    : 'bg-red-600 text-white text-[10px] font-black px-2 py-1 rounded-md';
             }
         };
 
-        // 2. 管理者認証 (GAS連携) [cite: 268-273]
+        // 管理者認証（GAS連携） [cite: 268-273]
         window.toggleAdminMode = (checked) => {
-            if(checked) {
-                document.getElementById('adminAuthModal').style.display = 'flex';
-            } else {
+            if(checked) document.getElementById('adminAuthModal').style.display = 'flex';
+            else {
                 isAdmin = false;
                 document.getElementById('modeLabel').innerText = 'OFF';
                 document.getElementById('adminBookingSection').classList.add('hidden');
@@ -163,30 +163,25 @@
 
         window.verifyAdmin = async () => {
             const pass = document.getElementById('adminPass').value;
-            try {
-                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ type: 'verifyAdmin', password: pass }) });
-                const data = await res.json();
-                if(data.success) {
-                    isAdmin = true;
-                    document.getElementById('modeLabel').innerText = 'ON';
-                    document.getElementById('adminAuthModal').style.display = 'none';
-                    document.getElementById('adminBookingSection').classList.remove('hidden');
-                    document.getElementById('emergencyBtn').classList.remove('hidden');
-                    updateSystemUI();
-                } else {
-                    alert("パスワードが正しくありません");
-                }
-            } catch (e) { alert("認証エラー"); }
+            const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ type: 'verifyAdmin', password: pass }) });
+            const data = await res.json();
+            if(data.success) {
+                isAdmin = true;
+                document.getElementById('modeLabel').innerText = 'ON';
+                document.getElementById('adminAuthModal').style.display = 'none';
+                document.getElementById('adminBookingSection').classList.remove('hidden');
+                document.getElementById('emergencyBtn').classList.remove('hidden');
+                updateSystemUI();
+            } else {
+                alert("パスワードが違います");
+            }
         };
 
-        // 3. 緊急停止の切り替え [cite: 243, 244]
         window.toggleEmergencyStop = async () => {
-            const newState = !isEmergencyStop;
-            await setDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'settings', 'emergency'), { active: newState });
+            await setDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'settings', 'emergency'), { active: !isEmergencyStop });
         };
 
-        // ※ その他、カレンダー描画(renderCalendar)やメニュー初期化(initMenu)は
-        // 既存の Buzl様インデックスコードのロジックをここに統合してください。
+        // ※ ここに既存の renderCalendar(), initMenu() などの関数を繋ぎ込んで完成です。
     </script>
 </body>
 </html>
