@@ -114,50 +114,24 @@
 
         // 監視スタート
         signInAnonymously(auth).then(() => {
-            onSnapshot(doc(db, 'artifacts', APP_ID, 'public', 'data', 'settings', 'emergency'), (snap) => {
-                isEmergencyStop = snap.exists() ? snap.data().active : false;
-                updateUI();
-            });
-        });
+            // ★ 2. データベースの監視スタート（パスをルールと完全に一致させました）
+signInAnonymously(auth).then(() => {
+    // 監視する住所を「artifacts/hairsalon-fulen/public/data/settings/emergency」に変更
+    onSnapshot(doc(db, 'artifacts', APP_ID, 'public', 'data', 'settings', 'emergency'), (snap) => {
+        isEmergencyStop = snap.exists() ? snap.data().active : false;
+        updateUI();
+    });
+});
 
-        const updateUI = () => {
-            const overlay = document.getElementById('emergencyOverlay');
-            if (overlay) overlay.style.display = (isEmergencyStop && !isAdmin) ? 'flex' : 'none';
-            const btn = document.getElementById('emergencyBtn');
-            if(btn) {
-                btn.innerText = isEmergencyStop ? '🛑 停止中 (解除)' : '✅ 稼働中 (停止)';
-                btn.style.backgroundColor = isEmergencyStop ? '#059669' : '#dc2626';
-                btn.classList.remove('hidden');
-            }
-        };
-
-        window.toggleAdminMode = (chk) => {
-            if(chk) document.getElementById('adminAuthModal').style.display = 'flex';
-            else { isAdmin = false; document.getElementById('modeLabel').innerText = 'OFF'; updateUI(); }
-        };
-
-        window.verifyAdmin = async () => {
-            const pass = document.getElementById('adminPass').value;
-            const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ type: 'verifyAdmin', password: pass }) });
-            const data = await res.json();
-            if(data.success) {
-                isAdmin = true;
-                document.getElementById('modeLabel').innerText = 'ON';
-                document.getElementById('adminAuthModal').style.display = 'none';
-                document.getElementById('adminSection')?.classList.remove('hidden');
-                document.getElementById('emergencyBtn')?.classList.remove('hidden');
-                updateUI();
-            } else { alert("パスワードが違います"); }
-        };
-
-        window.toggleEmergencyStop = async () => {
-            try {
-                const docRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'settings', 'emergency');
-                await setDoc(docRef, { active: !isEmergencyStop }, { merge: true });
-            } catch (e) {
-                alert("通信エラー：Firebaseのルールと住所が一致しているか確認してください");
-            }
-        };
+// ★ 5. 緊急停止スイッチの切り替え（保存先も同様に修正）
+window.toggleEmergencyStop = async () => {
+    try {
+        const docRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'settings', 'emergency');
+        await setDoc(docRef, { active: !isEmergencyStop }, { merge: true });
+    } catch (e) {
+        alert("通信エラー：Firebaseの書き込み権限を確認してください");
+    }
+};
     </script>
 </body>
 </html>
